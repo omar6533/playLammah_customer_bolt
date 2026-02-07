@@ -271,6 +271,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
       GameInProgress gameState, QuestionLoaded questionState) {
     final groupedQuestions =
         _groupQuestionsBySubcategory(questionState.questions);
+    final subcategories = groupedQuestions.keys.toList();
 
     return Container(
       color: const Color(0xFFF5F5F5),
@@ -278,13 +279,14 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                children: groupedQuestions.entries.map((entry) {
-                  return _buildSubcategorySection(
-                    gameState,
-                    entry.key,
-                    entry.value,
+              padding: EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: subcategories.map((subCategoryId) {
+                  final questions = groupedQuestions[subCategoryId]!;
+                  return Expanded(
+                    child: _buildSubcategoryColumn(
+                        gameState, subCategoryId, questions),
                   );
                 }).toList(),
               ),
@@ -313,108 +315,97 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     return grouped;
   }
 
-  Widget _buildSubcategorySection(
+  Widget _buildSubcategoryColumn(
     GameInProgress gameState,
     String subCategoryId,
     List<Question> questions,
   ) {
-    return Container(
-      margin: EdgeInsets.only(bottom: AppSpacing.lg),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: questions.map((question) {
-          final isPlayed = gameState.playedQuestions.contains(question.id);
-          final index = questions.indexOf(question);
-          final isMiddle = index == 1;
-
-          return Expanded(
-            child: Column(
-              children: [
-                if (index == 0) ...[
-                  Container(
-                    margin: EdgeInsets.only(bottom: AppSpacing.sm),
-                    padding: EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      _getIconForSubcategory(subCategoryId),
-                      size: 48,
-                      color: _getColorForSubcategory(subCategoryId),
-                    ),
-                  ),
-                ],
-                if (isMiddle) ...[
-                  Container(
-                    margin: EdgeInsets.only(bottom: AppSpacing.sm),
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryRed,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      _getNameForSubcategory(subCategoryId),
-                      style: AppTextStyles.mediumBold.copyWith(
-                        color: AppColors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-                if (index == 2) ...[
-                  SizedBox(height: 62),
-                ],
-                Container(
-                  margin: EdgeInsets.symmetric(horizontal: 4),
-                  child: InkWell(
-                    onTap: isPlayed
-                        ? null
-                        : () {
-                            context.router.push(
-                              QuestionDisplayRoute(
-                                gameId: widget.gameId,
-                                questionId: question.id,
-                              ),
-                            );
-                          },
-                    child: Container(
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: isPlayed
-                            ? const Color(0xFFD3D3D3)
-                            : const Color(0xFFD0D0E0),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Center(
-                        child: Text(
-                          isPlayed ? '' : '${question.points}',
-                          style: AppTextStyles.extraLargeTvBold.copyWith(
-                            color: AppColors.primaryRed,
-                            fontSize: 32,
-                            fontWeight: FontWeight.bold,
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 4),
+      child: Column(
+        children: [
+          Container(
+            height: 64,
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Icon(
+                _getIconForSubcategory(subCategoryId),
+                size: 36,
+                color: _getColorForSubcategory(subCategoryId),
+              ),
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Container(
+            height: 32,
+            decoration: BoxDecoration(
+              color: AppColors.primaryRed,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Center(
+              child: Text(
+                _getNameForSubcategory(subCategoryId),
+                style: AppTextStyles.smallRegular.copyWith(
+                  color: AppColors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          ...questions.map((question) {
+            final isPlayed = gameState.playedQuestions.contains(question.id);
+            return Padding(
+              padding: EdgeInsets.only(bottom: AppSpacing.xs),
+              child: InkWell(
+                onTap: isPlayed
+                    ? null
+                    : () {
+                        context.router.push(
+                          QuestionDisplayRoute(
+                            gameId: widget.gameId,
+                            questionId: question.id,
                           ),
-                        ),
+                        );
+                      },
+                child: Container(
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: isPlayed
+                        ? const Color(0xFFD3D3D3)
+                        : const Color(0xFFD0D0E0),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text(
+                      isPlayed ? '' : '${question.points}',
+                      style: AppTextStyles.largeTvBold.copyWith(
+                        color: AppColors.primaryRed,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        }).toList(),
+              ),
+            );
+          }).toList(),
+        ],
       ),
     );
   }
 
   Widget _buildTeamCards(GameInProgress gameState) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
-      color: AppColors.white,
+      padding: EdgeInsets.all(AppSpacing.md),
+      color: const Color(0xFFE8E8E8),
       child: Row(
         children: [
           Expanded(
@@ -439,54 +430,82 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
 
   Widget _buildTeamCard(String teamName, int score, bool isLeft) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.lg),
+      padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8E8E8),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFD0D0D0), width: 1),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             teamName,
-            style: AppTextStyles.largeTvBold.copyWith(
+            style: AppTextStyles.mediumBold.copyWith(
               color: const Color(0xFF333333),
-              fontSize: 20,
+              fontSize: 16,
             ),
             textAlign: TextAlign.center,
-          ),
-          SizedBox(height: AppSpacing.md),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.sm,
-            ),
-            child: Text(
-              '$score',
-              style: AppTextStyles.extraLargeTvBold.copyWith(
-                color: AppColors.primaryRed,
-                fontSize: 56,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          SizedBox(height: AppSpacing.md),
-          Text(
-            'وسائل المساعدة',
-            style: AppTextStyles.mediumBold.copyWith(
-              color: const Color(0xFF666666),
-              fontSize: 14,
-            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: AppSpacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _buildLifelineButton(Icons.people),
-              SizedBox(width: AppSpacing.sm),
-              _buildLifelineButton(Icons.phone),
-              SizedBox(width: AppSpacing.sm),
-              _buildLifelineButton(Icons.power_settings_new),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryRed,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.remove, color: AppColors.white, size: 20),
+              ),
+              SizedBox(width: AppSpacing.md),
+              Text(
+                '$score',
+                style: AppTextStyles.extraLargeTvBold.copyWith(
+                  color: AppColors.primaryRed,
+                  fontSize: 40,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(width: AppSpacing.md),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryRed,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.add, color: AppColors.white, size: 20),
+              ),
+            ],
+          ),
+          SizedBox(height: AppSpacing.sm),
+          Text(
+            'وسائل المساعدة',
+            style: AppTextStyles.smallRegular.copyWith(
+              color: const Color(0xFF999999),
+              fontSize: 12,
+            ),
+          ),
+          SizedBox(height: AppSpacing.xs),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildLifelineButton(Icons.people_outline),
+              SizedBox(width: AppSpacing.xs),
+              _buildLifelineButton(Icons.phone_outlined),
+              SizedBox(width: AppSpacing.xs),
+              _buildLifelineButton(Icons.power_settings_new_outlined),
             ],
           ),
         ],
@@ -496,15 +515,16 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
 
   Widget _buildLifelineButton(IconData icon) {
     return Container(
-      padding: EdgeInsets.all(AppSpacing.sm),
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
-        color: const Color(0xFFB0B0B0),
+        color: const Color(0xFFCCCCCC),
         shape: BoxShape.circle,
       ),
       child: Icon(
         icon,
-        size: 24,
-        color: AppColors.white,
+        size: 18,
+        color: Colors.white,
       ),
     );
   }

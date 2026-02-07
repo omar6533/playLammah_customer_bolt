@@ -53,7 +53,8 @@ class MockFirebaseService {
     final userId = _users.entries
         .firstWhere(
           (entry) => entry.value.email == email,
-          orElse: () => MapEntry('mock_user_default', MockData.getMockUserProfile('mock_user_default')),
+          orElse: () => MapEntry('mock_user_default',
+              MockData.getMockUserProfile('mock_user_default')),
         )
         .key;
 
@@ -154,12 +155,14 @@ class MockFirebaseService {
     return MockData.mainCategories;
   }
 
-  Future<List<SubCategory>> getSubCategoriesForMainCategory(String mainCategoryId) async {
+  Future<List<SubCategory>> getSubCategoriesForMainCategory(
+      String mainCategoryId) async {
     await _simulateDelay();
     return MockData.getSubCategoriesForMainCategory(mainCategoryId);
   }
 
-  Future<List<Question>> getQuestionsForSubCategories(List<String> subCategoryIds) async {
+  Future<List<Question>> getQuestionsForSubCategories(
+      List<String> subCategoryIds) async {
     await _simulateDelay();
     return MockData.getQuestionsForSubCategories(subCategoryIds);
   }
@@ -218,6 +221,19 @@ class MockFirebaseService {
     return null;
   }
 
+  Future<GameRecord> getGameById(String gameId) async {
+    await _simulateDelay();
+
+    for (final games in _userGames.values) {
+      try {
+        return games.firstWhere((g) => g.id == gameId);
+      } catch (e) {
+        continue;
+      }
+    }
+    throw Exception('Game not found with id: $gameId');
+  }
+
   Future<List<GameRecord>> getUserGames(String userId) async {
     await _simulateDelay();
 
@@ -265,7 +281,8 @@ class MockFirebaseService {
       final index = games.indexWhere((g) => g.id == gameId);
       if (index != -1) {
         final game = games[index];
-        final updatedQuestions = List<String>.from(game.playedQuestions)..add(questionId);
+        final updatedQuestions = List<String>.from(game.playedQuestions)
+          ..add(questionId);
         games[index] = game.copyWith(
           playedQuestions: updatedQuestions,
           updatedAt: DateTime.now().toIso8601String(),

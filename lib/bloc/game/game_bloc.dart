@@ -8,7 +8,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
   final AppService _appService;
   final String userId;
 
-  GameBloc({AppService? appService, required this.userId})
+  GameBloc({AppService? appService, this.userId = ''})
       : _appService = appService ?? AppService(),
         super(const GameInitial()) {
     on<CreateGameEvent>(_onCreateGame);
@@ -130,7 +130,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state is! GameInProgress) return;
 
     try {
-      await _appService.addPlayedQuestion(gameId: event.gameId, questionId: event.questionId);
+      await _appService.addPlayedQuestion(
+          gameId: event.gameId, questionId: event.questionId);
 
       final updatedQuestions = [...state.playedQuestions, event.questionId];
 

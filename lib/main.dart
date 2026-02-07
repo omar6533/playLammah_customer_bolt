@@ -48,7 +48,7 @@ class TriviaGameApp extends StatelessWidget {
           create: (context) => CategoryBloc(),
         ),
         BlocProvider<GameBloc>(
-          create: (context) => GameBloc(userId: ''),
+          create: (context) => GameBloc(),
         ),
         BlocProvider<UserBloc>(
           create: (context) => UserBloc(),

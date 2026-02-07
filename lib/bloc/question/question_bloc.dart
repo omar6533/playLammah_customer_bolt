@@ -9,10 +9,34 @@ class QuestionBloc extends Bloc<QuestionEvent, QuestionState> {
   QuestionBloc({AppService? appService})
       : _appService = appService ?? AppService(),
         super(const QuestionInitial()) {
+    on<LoadQuestionsEvent>(_onLoadQuestions);
     on<LoadQuestionsForGameEvent>(_onLoadQuestionsForGame);
     on<LoadQuestionByIdEvent>(_onLoadQuestionById);
     on<MarkQuestionAnsweredEvent>(_onMarkAnswered);
     on<ResetQuestionsEvent>(_onResetQuestions);
+  }
+
+  Future<void> _onLoadQuestions(
+      LoadQuestionsEvent event, Emitter<QuestionState> emit) async {
+    emit(const QuestionLoading());
+    try {
+      final gameRecord = await _appService.getGame(event.gameId);
+      if (gameRecord == null) {
+        emit(const QuestionError(message: 'Game not found'));
+        return;
+      }
+      final allQuestions = await _appService.getQuestionsForSubCategories(
+        gameRecord.selectedSubcategories,
+      );
+
+      emit(QuestionLoaded(
+        questions: allQuestions,
+        currentQuestion: allQuestions.isNotEmpty ? allQuestions.first : null,
+        answeredQuestionIds: [],
+      ));
+    } catch (e) {
+      emit(QuestionError(message: e.toString()));
+    }
   }
 
   Future<void> _onLoadQuestionsForGame(
