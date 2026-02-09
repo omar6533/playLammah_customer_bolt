@@ -101,6 +101,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state is! GameInProgress) return;
 
     try {
+      print(
+          '📊 UpdateScoreEvent - Left: ${event.leftTeamScore}, Right: ${event.rightTeamScore}, Turn: ${event.currentTurn}');
+
       await _appService.updateGameScore(
         gameId: event.gameId,
         leftTeamScore: event.leftTeamScore,
@@ -108,13 +111,18 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         currentTurn: event.currentTurn,
       );
 
+      final updatedGameRecord = state.gameRecord.copyWith(
+        leftTeamScore: event.leftTeamScore,
+        rightTeamScore: event.rightTeamScore,
+        currentTurn: event.currentTurn,
+      );
+
+      print(
+          '📊 Emitting GameInProgress - Left: ${updatedGameRecord.leftTeamName} (${event.leftTeamScore}), Right: ${updatedGameRecord.rightTeamName} (${event.rightTeamScore}), Turn: ${event.currentTurn}');
+
       emit(GameInProgress(
         gameId: event.gameId,
-        gameRecord: state.gameRecord.copyWith(
-          leftTeamScore: event.leftTeamScore,
-          rightTeamScore: event.rightTeamScore,
-          currentTurn: event.currentTurn,
-        ),
+        gameRecord: updatedGameRecord,
         leftTeam: state.leftTeam.copyWith(score: event.leftTeamScore),
         rightTeam: state.rightTeam.copyWith(score: event.rightTeamScore),
         playedQuestions: state.playedQuestions,
@@ -130,14 +138,23 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state is! GameInProgress) return;
 
     try {
+      print(
+          '❓ AnswerQuestionEvent - Current state: Left: ${state.gameRecord.leftTeamName} (${state.gameRecord.leftTeamScore}), Right: ${state.gameRecord.rightTeamName} (${state.gameRecord.rightTeamScore}), Turn: ${state.gameRecord.currentTurn}');
+
       await _appService.addPlayedQuestion(
           gameId: event.gameId, questionId: event.questionId);
 
       final updatedQuestions = [...state.playedQuestions, event.questionId];
+      final updatedGameRecord = state.gameRecord.copyWith(
+        playedQuestions: updatedQuestions,
+      );
+
+      print(
+          '❓ Emitting GameInProgress - Left: ${updatedGameRecord.leftTeamName} (${updatedGameRecord.leftTeamScore}), Right: ${updatedGameRecord.rightTeamName} (${updatedGameRecord.rightTeamScore}), Turn: ${updatedGameRecord.currentTurn}');
 
       emit(GameInProgress(
         gameId: event.gameId,
-        gameRecord: state.gameRecord,
+        gameRecord: updatedGameRecord,
         leftTeam: state.leftTeam,
         rightTeam: state.rightTeam,
         playedQuestions: updatedQuestions,

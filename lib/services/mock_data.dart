@@ -406,6 +406,61 @@ class MockData {
       order: 5,
     ),
     const Question(
+      id: 'q_biology_1',
+      subCategoryId: 'sub_biology',
+      questionText: 'What is the powerhouse of the cell?',
+      questionTextAr: 'ما مصدر الطاقة في الخلية؟',
+      answer: 'Mitochondria',
+      answerAr: 'الميتوكوندريا',
+      points: 200,
+      isActive: true,
+      order: 1,
+    ),
+    const Question(
+      id: 'q_biology_2',
+      subCategoryId: 'sub_biology',
+      questionText: 'What molecule carries genetic information?',
+      questionTextAr: 'ما الجزيء الذي يحمل المعلومات الوراثية؟',
+      answer: 'DNA',
+      answerAr: 'الحمض النووي',
+      points: 400,
+      isActive: true,
+      order: 2,
+    ),
+    const Question(
+      id: 'q_biology_3',
+      subCategoryId: 'sub_biology',
+      questionText: 'What process do plants use to make food?',
+      questionTextAr: 'ما العملية التي تستخدمها النباتات لصنع الغذاء؟',
+      answer: 'Photosynthesis',
+      answerAr: 'التمثيل الضوئي',
+      points: 600,
+      isActive: true,
+      order: 3,
+    ),
+    const Question(
+      id: 'q_biology_4',
+      subCategoryId: 'sub_biology',
+      questionText: 'How many chromosomes do humans have?',
+      questionTextAr: 'كم عدد الكروموسومات في الإنسان؟',
+      answer: '46',
+      answerAr: '46',
+      points: 800,
+      isActive: true,
+      order: 4,
+    ),
+    const Question(
+      id: 'q_biology_5',
+      subCategoryId: 'sub_biology',
+      questionText: 'What is the largest organ in the human body?',
+      questionTextAr: 'ما أكبر عضو في جسم الإنسان؟',
+      answer: 'Skin',
+      answerAr: 'الجلد',
+      points: 1000,
+      isActive: true,
+      order: 5,
+    ),
+    const Question(
       id: 'q_football_1',
       subCategoryId: 'sub_football',
       questionText: 'Which country won the 2022 FIFA World Cup?',
@@ -544,9 +599,12 @@ class MockData {
         playedQuestions: ['q_ancient_1', 'q_ancient_2', 'q_modern_1'],
         selectedSubcategories: ['sub_ancient_history', 'sub_modern_history'],
         playCount: 1,
-        createdAt: DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-        updatedAt: DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
-        completedAt: DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        createdAt:
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        updatedAt:
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
+        completedAt:
+            DateTime.now().subtract(const Duration(days: 2)).toIso8601String(),
       ),
       GameRecord(
         id: 'game_2',
@@ -561,18 +619,26 @@ class MockData {
         playedQuestions: ['q_physics_1', 'q_chemistry_1'],
         selectedSubcategories: ['sub_physics', 'sub_chemistry'],
         playCount: 1,
-        createdAt: DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
-        updatedAt: DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
+        createdAt:
+            DateTime.now().subtract(const Duration(days: 1)).toIso8601String(),
+        updatedAt:
+            DateTime.now().subtract(const Duration(hours: 2)).toIso8601String(),
       ),
     ];
   }
 
-  static List<SubCategory> getSubCategoriesForMainCategory(String mainCategoryId) {
-    return subCategories.where((sub) => sub.mainCategoryId == mainCategoryId).toList();
+  static List<SubCategory> getSubCategoriesForMainCategory(
+      String mainCategoryId) {
+    return subCategories
+        .where((sub) => sub.mainCategoryId == mainCategoryId)
+        .toList();
   }
 
-  static List<Question> getQuestionsForSubCategories(List<String> subCategoryIds) {
-    return questions.where((q) => subCategoryIds.contains(q.subCategoryId)).toList();
+  static List<Question> getQuestionsForSubCategories(
+      List<String> subCategoryIds) {
+    return questions
+        .where((q) => subCategoryIds.contains(q.subCategoryId))
+        .toList();
   }
 
   static Question? getQuestionById(String questionId) {

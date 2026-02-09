@@ -29,7 +29,7 @@ class CategorySelectionRoute extends PageRouteInfo<void> {
 /// generated route for
 /// [GameOverScreen]
 class GameOverRoute extends PageRouteInfo<void> {
-  const GameOverRoute({List<PageRouteInfo>? children})
+  const GameOverRoute({List<PageRouteInfo>? children, required String gameId})
       : super(GameOverRoute.name, initialChildren: children);
 
   static const String name = 'GameOverRoute';

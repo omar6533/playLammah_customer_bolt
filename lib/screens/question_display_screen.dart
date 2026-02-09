@@ -8,12 +8,13 @@ import '../bloc/question/question_bloc.dart';
 import '../bloc/question/question_state.dart';
 import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_event.dart';
+import '../bloc/game/game_state.dart';
 import '../utils/responsive_helper.dart';
 import '../utils/orientation_manager.dart';
 import '../widgets/primary_button.dart';
 
 @RoutePage()
-class QuestionDisplayScreen extends StatelessWidget {
+class QuestionDisplayScreen extends StatefulWidget {
   final String gameId;
   final String questionId;
 
@@ -22,6 +23,13 @@ class QuestionDisplayScreen extends StatelessWidget {
     required this.gameId,
     required this.questionId,
   }) : super(key: key);
+
+  @override
+  State<QuestionDisplayScreen> createState() => _QuestionDisplayScreenState();
+}
+
+class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
+  bool _showAnswer = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +50,7 @@ class QuestionDisplayScreen extends StatelessWidget {
             }
 
             final question = state.questions.firstWhere(
-              (q) => q.id == questionId,
+              (q) => q.id == widget.questionId,
               orElse: () => state.questions.first,
             );
 
@@ -93,12 +101,21 @@ class QuestionDisplayScreen extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          padding: EdgeInsets.all(AppSpacing.md),
-          color: AppColors.white,
-          child: SafeArea(
-            child: _buildActionButtons(context),
-          ),
+        BlocBuilder<QuestionBloc, QuestionState>(
+          builder: (context, state) {
+            if (state is! QuestionLoaded) return const SizedBox();
+            final question = state.questions.firstWhere(
+              (q) => q.id == widget.questionId,
+              orElse: () => state.questions.first,
+            );
+            return Container(
+              padding: EdgeInsets.all(AppSpacing.md),
+              color: AppColors.white,
+              child: SafeArea(
+                child: _buildActionButtons(context, question),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -183,6 +200,46 @@ class QuestionDisplayScreen extends StatelessWidget {
   }
 
   Widget _buildAnswerSection(BuildContext context, question) {
+    if (!_showAnswer) {
+      return Container(
+        margin: EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: AppColors.primaryRed,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primaryRed.withOpacity(0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.lock,
+              color: AppColors.white,
+              size: 64,
+            ),
+            SizedBox(height: AppSpacing.md),
+            Text(
+              'اضغط لإظهار الإجابة',
+              style: AppTextStyles.largeTvBold.copyWith(
+                color: AppColors.white,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            if (!ResponsiveHelper.isLandscape(context)) ...[
+              SizedBox(height: AppSpacing.xxl),
+              _buildActionButtons(context, question),
+            ],
+          ],
+        ),
+      );
+    }
+
     return Container(
       margin: EdgeInsets.all(AppSpacing.md),
       padding: EdgeInsets.all(AppSpacing.xl),
@@ -229,27 +286,226 @@ class QuestionDisplayScreen extends StatelessWidget {
           ),
           if (!ResponsiveHelper.isLandscape(context)) ...[
             SizedBox(height: AppSpacing.xxl),
-            _buildActionButtons(context),
+            _buildActionButtons(context, question),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons(BuildContext context, question) {
+    if (!_showAnswer) {
+      return PrimaryButton(
+        text: 'إظهار الإجابة',
+        onPressed: () {
+          setState(() {
+            _showAnswer = true;
+          });
+        },
+        icon: Icons.visibility,
+        backgroundColor: AppColors.primaryYellow,
+      );
+    }
+
     return PrimaryButton(
-      text: 'العودة إلى اللوحة',
-      onPressed: () {
-        context.read<GameBloc>().add(
-              AnswerQuestionEvent(
-                gameId: gameId,
-                questionId: questionId,
-              ),
-            );
-        context.router.pop();
-      },
-      icon: Icons.arrow_back,
+      text: 'أي فريق ؟',
+      onPressed: () => _showTeamSelectionDialog(context, question.points),
+      icon: Icons.emoji_events,
       backgroundColor: AppColors.darkGray,
     );
+  }
+
+  void _showTeamSelectionDialog(BuildContext context, int points) {
+    final gameState = context.read<GameBloc>().state;
+    if (gameState is! GameInProgress) return;
+
+    final gameRecord = gameState.gameRecord;
+    final leftTeamName = gameRecord.leftTeamName;
+    final rightTeamName = gameRecord.rightTeamName;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        child: Container(
+          padding: EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.primaryRed, width: 3),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'أي فريق جاوب صح ؟',
+                style: AppTextStyles.extraLargeTvBold.copyWith(
+                  color: AppColors.darkGray,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: AppSpacing.xl),
+              Row(
+                children: [
+                  Expanded(
+                    child: PrimaryButton(
+                      text: leftTeamName,
+                      onPressed: () async {
+                        final router = context.router;
+                        final navigator = Navigator.of(dialogContext);
+                        await _awardPoints(context, 'left', points);
+                        navigator.pop();
+                        if (context.mounted) {
+                          router.pop();
+                        }
+                      },
+                      backgroundColor: AppColors.primaryRed,
+                    ),
+                  ),
+                  SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: PrimaryButton(
+                      text: rightTeamName,
+                      onPressed: () async {
+                        final router = context.router;
+                        final navigator = Navigator.of(dialogContext);
+                        await _awardPoints(context, 'right', points);
+                        navigator.pop();
+                        if (context.mounted) {
+                          router.pop();
+                        }
+                      },
+                      backgroundColor: AppColors.primaryRed,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: AppSpacing.md),
+              PrimaryButton(
+                text: 'ولا أحد',
+                onPressed: () async {
+                  final router = context.router;
+                  final navigator = Navigator.of(dialogContext);
+                  await _awardPoints(context, 'none', points);
+                  navigator.pop();
+                  if (context.mounted) {
+                    router.pop();
+                  }
+                },
+                backgroundColor: Colors.grey,
+              ),
+              SizedBox(height: AppSpacing.md),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                },
+                child: Text(
+                  'العودة للإجابة',
+                  style: AppTextStyles.largeTv.copyWith(
+                    color: AppColors.primaryRed,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _awardPoints(
+      BuildContext context, String winner, int points) async {
+    final gameBloc = context.read<GameBloc>();
+    final questionBloc = context.read<QuestionBloc>();
+    final gameState = gameBloc.state;
+    if (gameState is! GameInProgress) return;
+
+    final gameRecord = gameState.gameRecord;
+    int newLeftScore = gameRecord.leftTeamScore;
+    int newRightScore = gameRecord.rightTeamScore;
+    String newTurn = gameRecord.currentTurn;
+
+    debugPrint(
+        '🎮 Before Award - Left: ${gameRecord.leftTeamName} ($newLeftScore), Right: ${gameRecord.rightTeamName} ($newRightScore), Turn: $newTurn');
+    debugPrint('🏆 Winner: $winner, Points: $points');
+
+    if (winner == 'left') {
+      newLeftScore += points;
+      newTurn = 'right';
+    } else if (winner == 'right') {
+      newRightScore += points;
+      newTurn = 'left';
+    } else {
+      newTurn = gameRecord.currentTurn == 'left' ? 'right' : 'left';
+    }
+
+    debugPrint(
+        '🎮 After Award - Left: ${gameRecord.leftTeamName} ($newLeftScore), Right: ${gameRecord.rightTeamName} ($newRightScore), Turn: $newTurn');
+
+    gameBloc.add(
+      UpdateScoreEvent(
+        gameId: widget.gameId,
+        leftTeamScore: newLeftScore,
+        rightTeamScore: newRightScore,
+        currentTurn: newTurn,
+      ),
+    );
+
+    await gameBloc.stream.firstWhere((state) =>
+        state is GameInProgress &&
+        state.gameRecord.leftTeamScore == newLeftScore &&
+        state.gameRecord.rightTeamScore == newRightScore &&
+        state.gameRecord.currentTurn == newTurn);
+
+    debugPrint('✅ State updated, now marking question as played');
+
+    gameBloc.add(
+      AnswerQuestionEvent(
+        gameId: widget.gameId,
+        questionId: widget.questionId,
+      ),
+    );
+
+    // Wait for the question to be marked as played
+    await gameBloc.stream.firstWhere((state) =>
+        state is GameInProgress &&
+        state.playedQuestions.contains(widget.questionId));
+
+    // Check if all questions have been answered
+    final questionState = questionBloc.state;
+    if (questionState is QuestionLoaded) {
+      final updatedGameState = gameBloc.state;
+      if (updatedGameState is GameInProgress) {
+        final totalQuestions = questionState.questions.length;
+        final playedQuestions = updatedGameState.playedQuestions.length;
+
+        debugPrint(
+            '🎯 Game Progress: $playedQuestions / $totalQuestions questions played');
+
+        if (playedQuestions >= totalQuestions) {
+          debugPrint('🏁 All questions answered! Completing game...');
+
+          // Determine winner
+          String gameWinner;
+          if (newLeftScore > newRightScore) {
+            gameWinner = gameRecord.leftTeamName;
+          } else if (newRightScore > newLeftScore) {
+            gameWinner = gameRecord.rightTeamName;
+          } else {
+            gameWinner = 'tie';
+          }
+
+          gameBloc.add(
+            CompleteGameEvent(
+              gameId: widget.gameId,
+              winner: gameWinner,
+            ),
+          );
+        }
+      }
+    }
   }
 }

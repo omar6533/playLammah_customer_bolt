@@ -2,13 +2,13 @@ import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trivia_game/routes/app_router.dart';
-import 'package:trivia_game/services/app_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../bloc/category/category_bloc.dart';
 import '../bloc/category/category_event.dart';
 import '../bloc/category/category_state.dart';
+import '../services/app_service.dart';
 
 @RoutePage()
 class CategorySelectionScreen extends StatefulWidget {
@@ -290,10 +290,9 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                const Icon(
-                  Icons.videogame_asset,
-                  size: 48,
-                  color: Color(0xFF666666),
+                Text(
+                  subcategory.icon,
+                  style: const TextStyle(fontSize: 48),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Container(
