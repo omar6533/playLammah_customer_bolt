@@ -5,6 +5,7 @@ import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../utils/responsive_helper.dart';
 import '../widgets/purchase_dialog.dart';
+import '../config/app_config.dart';
 
 class SavedGame {
   final String id;
@@ -177,6 +178,9 @@ class _MyGamesScreenState extends State<MyGamesScreen> {
                   const Color(0xFF2E7D32),
                   () => PurchaseDialog.show(
                     context: context,
+                    moyasarApiKey: AppConfig.moyasarApiKey,
+                    callbackUrl: AppConfig.paymentCallbackUrl,
+                    successUrl: AppConfig.paymentSuccessUrl,
                     onPackageSelected: (package) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -352,7 +356,7 @@ class _MyGamesScreenState extends State<MyGamesScreen> {
                       SizedBox(height: 4),
                       Text(
                         category.nameAr,
-                        style: AppTextStyles.bodyBold.copyWith(
+                        style: AppTextStyles.mediumRegular.copyWith(
                           color: AppColors.white,
                           fontSize: 10,
                         ),

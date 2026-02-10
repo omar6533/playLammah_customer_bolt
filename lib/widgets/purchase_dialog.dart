@@ -1,12 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
+import '../services/payment_service.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../bloc/auth/auth_state.dart';
+import '../bloc/user/user_bloc.dart';
+import '../bloc/user/user_state.dart';
 
 class GamePackage {
   final String id;
   final String title;
   final String price;
+  final int priceInHalalas;
   final Color color;
   final int gameCount;
 
@@ -14,6 +22,7 @@ class GamePackage {
     required this.id,
     required this.title,
     required this.price,
+    required this.priceInHalalas,
     required this.color,
     required this.gameCount,
   });
@@ -26,6 +35,7 @@ class PurchaseDialog {
         id: 'pkg_10',
         title: '10 ألعاب',
         price: 'SAR 230',
+        priceInHalalas: 23000,
         color: AppColors.primaryRed,
         gameCount: 10,
       ),
@@ -33,6 +43,7 @@ class PurchaseDialog {
         id: 'pkg_5',
         title: '5 العاب',
         price: 'SAR 122',
+        priceInHalalas: 12200,
         color: const Color(0xFF9C27B0),
         gameCount: 5,
       ),
@@ -40,6 +51,7 @@ class PurchaseDialog {
         id: 'pkg_2',
         title: '2 لعاب',
         price: 'SAR 55',
+        priceInHalalas: 5500,
         color: const Color(0xFF4CAF50),
         gameCount: 2,
       ),
@@ -47,6 +59,7 @@ class PurchaseDialog {
         id: 'pkg_1',
         title: '1 لعاب',
         price: 'SAR 30',
+        priceInHalalas: 3000,
         color: const Color(0xFFE91E63),
         gameCount: 1,
       ),
@@ -57,6 +70,9 @@ class PurchaseDialog {
     required BuildContext context,
     List<GamePackage>? packages,
     Function(GamePackage)? onPackageSelected,
+    String? moyasarApiKey,
+    String? callbackUrl,
+    String? successUrl,
   }) {
     final packageList = packages ?? getDefaultPackages();
 
@@ -149,8 +165,15 @@ class PurchaseDialog {
                           padding: EdgeInsets.only(bottom: AppSpacing.md),
                           child: _buildPackageButton(
                             package: package,
-                            onTap: () {
+                            onTap: () async {
                               Navigator.of(dialogContext).pop();
+                              await _handlePackagePurchase(
+                                context: context,
+                                package: package,
+                                moyasarApiKey: moyasarApiKey,
+                                callbackUrl: callbackUrl,
+                                successUrl: successUrl,
+                              );
                               onPackageSelected?.call(package);
                             },
                           ),
@@ -163,6 +186,80 @@ class PurchaseDialog {
         ),
       ),
     );
+  }
+
+  static Future<void> _handlePackagePurchase({
+    required BuildContext context,
+    required GamePackage package,
+    String? moyasarApiKey,
+    String? callbackUrl,
+    String? successUrl,
+  }) async {
+    if (moyasarApiKey == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('مفتاح API غير متوفر')),
+      );
+      return;
+    }
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => const Center(
+          child: CircularProgressIndicator(color: AppColors.white),
+        ),
+      );
+
+      final authState = context.read<AuthBloc>().state;
+      final userState = context.read<UserBloc>().state;
+
+      if (authState is! Authenticated || userState is! UserLoaded) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('خطأ في بيانات المستخدم')),
+        );
+        return;
+      }
+
+      final userId = authState.userId;
+      final userProfile = userState.userProfile;
+
+      final paymentService = PaymentService(apiKey: moyasarApiKey);
+
+      final response = await paymentService.createInvoice(
+        amount: package.priceInHalalas,
+        description: 'شراء ${package.title} - allmahgame',
+        callbackUrl: callbackUrl ?? 'https://allmahgame.com/payment-callback',
+        successUrl: successUrl ?? 'https://allmahgame.com/payment-success',
+        metadata: {
+          'user_id': userId,
+          'user_email': userProfile.email,
+          'user_name': userProfile.name,
+          'user_mobile': userProfile.mobile,
+          'package_id': package.id,
+          'package_title': package.title,
+          'games_count': package.gameCount.toString(),
+          'price': package.price,
+        },
+      );
+
+      Navigator.of(context).pop();
+
+      final uri = Uri.parse(response.url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
+        );
+      }
+    } catch (e) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+      );
+    }
   }
 
   static Widget _buildPackageButton({

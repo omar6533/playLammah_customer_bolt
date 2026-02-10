@@ -149,6 +149,140 @@ class MyGamesRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [PaymentFailureScreen]
+class PaymentFailureRoute extends PageRouteInfo<PaymentFailureRouteArgs> {
+  PaymentFailureRoute({
+    Key? key,
+    String? errorMessage,
+    String? invoiceId,
+    List<PageRouteInfo>? children,
+  }) : super(
+          PaymentFailureRoute.name,
+          args: PaymentFailureRouteArgs(
+            key: key,
+            errorMessage: errorMessage,
+            invoiceId: invoiceId,
+          ),
+          rawQueryParams: {'error': errorMessage, 'id': invoiceId},
+          initialChildren: children,
+        );
+
+  static const String name = 'PaymentFailureRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final queryParams = data.queryParams;
+      final args = data.argsAs<PaymentFailureRouteArgs>(
+        orElse: () => PaymentFailureRouteArgs(
+          errorMessage: queryParams.optString('error'),
+          invoiceId: queryParams.optString('id'),
+        ),
+      );
+      return PaymentFailureScreen(
+        key: args.key,
+        errorMessage: args.errorMessage,
+        invoiceId: args.invoiceId,
+      );
+    },
+  );
+}
+
+class PaymentFailureRouteArgs {
+  const PaymentFailureRouteArgs({this.key, this.errorMessage, this.invoiceId});
+
+  final Key? key;
+
+  final String? errorMessage;
+
+  final String? invoiceId;
+
+  @override
+  String toString() {
+    return 'PaymentFailureRouteArgs{key: $key, errorMessage: $errorMessage, invoiceId: $invoiceId}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PaymentFailureRouteArgs) return false;
+    return key == other.key &&
+        errorMessage == other.errorMessage &&
+        invoiceId == other.invoiceId;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ errorMessage.hashCode ^ invoiceId.hashCode;
+}
+
+/// generated route for
+/// [PaymentSuccessScreen]
+class PaymentSuccessRoute extends PageRouteInfo<PaymentSuccessRouteArgs> {
+  PaymentSuccessRoute({
+    Key? key,
+    String? invoiceId,
+    int? gamesCount,
+    List<PageRouteInfo>? children,
+  }) : super(
+          PaymentSuccessRoute.name,
+          args: PaymentSuccessRouteArgs(
+            key: key,
+            invoiceId: invoiceId,
+            gamesCount: gamesCount,
+          ),
+          rawQueryParams: {'id': invoiceId, 'games': gamesCount},
+          initialChildren: children,
+        );
+
+  static const String name = 'PaymentSuccessRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final queryParams = data.queryParams;
+      final args = data.argsAs<PaymentSuccessRouteArgs>(
+        orElse: () => PaymentSuccessRouteArgs(
+          invoiceId: queryParams.optString('id'),
+          gamesCount: queryParams.optInt('games'),
+        ),
+      );
+      return PaymentSuccessScreen(
+        key: args.key,
+        invoiceId: args.invoiceId,
+        gamesCount: args.gamesCount,
+      );
+    },
+  );
+}
+
+class PaymentSuccessRouteArgs {
+  const PaymentSuccessRouteArgs({this.key, this.invoiceId, this.gamesCount});
+
+  final Key? key;
+
+  final String? invoiceId;
+
+  final int? gamesCount;
+
+  @override
+  String toString() {
+    return 'PaymentSuccessRouteArgs{key: $key, invoiceId: $invoiceId, gamesCount: $gamesCount}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PaymentSuccessRouteArgs) return false;
+    return key == other.key &&
+        invoiceId == other.invoiceId &&
+        gamesCount == other.gamesCount;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ invoiceId.hashCode ^ gamesCount.hashCode;
+}
+
+/// generated route for
 /// [PurchaseGamesScreen]
 class PurchaseGamesRoute extends PageRouteInfo<void> {
   const PurchaseGamesRoute({List<PageRouteInfo>? children})

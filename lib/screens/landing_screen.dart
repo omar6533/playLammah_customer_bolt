@@ -12,6 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/purchase_dialog.dart';
+import '../config/app_config.dart';
 
 @RoutePage()
 class LandingScreen extends StatefulWidget {
@@ -107,6 +108,9 @@ class _LandingScreenState extends State<LandingScreen> {
             ),
             () => PurchaseDialog.show(
               context: context,
+              moyasarApiKey: AppConfig.moyasarApiKey,
+              callbackUrl: AppConfig.paymentCallbackUrl,
+              successUrl: AppConfig.paymentSuccessUrl,
               onPackageSelected: (package) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
