@@ -11,6 +11,7 @@ import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
+import '../widgets/purchase_dialog.dart';
 
 @RoutePage()
 class LandingScreen extends StatefulWidget {
@@ -104,7 +105,16 @@ class _LandingScreenState extends State<LandingScreen> {
             const LinearGradient(
               colors: [Color(0xFFF7931E), Color(0xFFFDC830)],
             ),
-            () => context.router.push(const PurchaseGamesRoute()),
+            () => PurchaseDialog.show(
+              context: context,
+              onPackageSelected: (package) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('تم اختيار: ${package.title}'),
+                  ),
+                );
+              },
+            ),
           ),
           _buildNavButton(
             'My\nGames',

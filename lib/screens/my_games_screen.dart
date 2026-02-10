@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../utils/responsive_helper.dart';
-import '../routes/app_router.dart';
+import '../widgets/purchase_dialog.dart';
 
 class SavedGame {
   final String id;
@@ -175,7 +175,16 @@ class _MyGamesScreenState extends State<MyGamesScreen> {
                   'اشتر لعبة جديدة',
                   Icons.shopping_cart,
                   const Color(0xFF2E7D32),
-                  () => context.router.push(const PurchaseGamesRoute()),
+                  () => PurchaseDialog.show(
+                    context: context,
+                    onPackageSelected: (package) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('تم اختيار: ${package.title}'),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -343,7 +352,7 @@ class _MyGamesScreenState extends State<MyGamesScreen> {
                       SizedBox(height: 4),
                       Text(
                         category.nameAr,
-                        style: AppTextStyles.mediumBold.copyWith(
+                        style: AppTextStyles.bodyBold.copyWith(
                           color: AppColors.white,
                           fontSize: 10,
                         ),

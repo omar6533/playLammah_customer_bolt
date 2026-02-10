@@ -1,67 +1,68 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 
 class GamePackage {
+  final String id;
   final String title;
   final String price;
   final Color color;
+  final int gameCount;
 
   GamePackage({
+    required this.id,
     required this.title,
     required this.price,
     required this.color,
+    required this.gameCount,
   });
 }
 
-@RoutePage()
-class PurchaseGamesScreen extends StatefulWidget {
-  const PurchaseGamesScreen({Key? key}) : super(key: key);
-
-  @override
-  State<PurchaseGamesScreen> createState() => _PurchaseGamesScreenState();
-}
-
-class _PurchaseGamesScreenState extends State<PurchaseGamesScreen> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _showPurchaseDialog();
-    });
-  }
-
-  List<GamePackage> _getPackages() {
+class PurchaseDialog {
+  static List<GamePackage> getDefaultPackages() {
     return [
       GamePackage(
+        id: 'pkg_10',
         title: '10 ألعاب',
         price: 'SAR 230',
         color: AppColors.primaryRed,
+        gameCount: 10,
       ),
       GamePackage(
+        id: 'pkg_5',
         title: '5 العاب',
         price: 'SAR 122',
         color: const Color(0xFF9C27B0),
+        gameCount: 5,
       ),
       GamePackage(
+        id: 'pkg_2',
         title: '2 لعاب',
         price: 'SAR 55',
         color: const Color(0xFF4CAF50),
+        gameCount: 2,
       ),
       GamePackage(
+        id: 'pkg_1',
         title: '1 لعاب',
         price: 'SAR 30',
         color: const Color(0xFFE91E63),
+        gameCount: 1,
       ),
     ];
   }
 
-  void _showPurchaseDialog() {
+  static void show({
+    required BuildContext context,
+    List<GamePackage>? packages,
+    Function(GamePackage)? onPackageSelected,
+  }) {
+    final packageList = packages ?? getDefaultPackages();
+
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: EdgeInsets.all(AppSpacing.lg),
@@ -97,10 +98,7 @@ class _PurchaseGamesScreenState extends State<PurchaseGamesScreen> {
                     IconButton(
                       icon: const Icon(Icons.close,
                           color: AppColors.white, size: 28),
-                      onPressed: () {
-                        Navigator.of(dialogContext).pop();
-                        context.router.pop();
-                      },
+                      onPressed: () => Navigator.of(dialogContext).pop(),
                     ),
                   ],
                 ),
@@ -147,9 +145,15 @@ class _PurchaseGamesScreenState extends State<PurchaseGamesScreen> {
                       ),
                     ),
                     SizedBox(height: AppSpacing.xl),
-                    ..._getPackages().map((package) => Padding(
+                    ...packageList.map((package) => Padding(
                           padding: EdgeInsets.only(bottom: AppSpacing.md),
-                          child: _buildPackageButton(package),
+                          child: _buildPackageButton(
+                            package: package,
+                            onTap: () {
+                              Navigator.of(dialogContext).pop();
+                              onPackageSelected?.call(package);
+                            },
+                          ),
                         )),
                   ],
                 ),
@@ -158,16 +162,15 @@ class _PurchaseGamesScreenState extends State<PurchaseGamesScreen> {
           ),
         ),
       ),
-    ).then((_) {
-      if (mounted && Navigator.of(context).canPop()) {
-        context.router.pop();
-      }
-    });
+    );
   }
 
-  Widget _buildPackageButton(GamePackage package) {
+  static Widget _buildPackageButton({
+    required GamePackage package,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: EdgeInsets.symmetric(
@@ -204,20 +207,6 @@ class _PurchaseGamesScreenState extends State<PurchaseGamesScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('شراء ألعاب', style: AppTextStyles.largeTvBold),
-        backgroundColor: AppColors.primaryRed,
-        foregroundColor: AppColors.white,
-      ),
-      body: const Center(
-        child: CircularProgressIndicator(),
       ),
     );
   }
