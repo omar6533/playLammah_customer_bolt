@@ -21,5 +21,5 @@ class AppConfig {
   static const String paymentCallbackUrl =
       'https://allmahgame.com/customer/payment-callback';
   static const String paymentSuccessUrl =
-      'https://allmahgame.com/customer/payment-success';
+      'https://playlammh.com/customer/#/payment-success-route';
 }

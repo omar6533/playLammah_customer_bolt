@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trivia_game/utils/url_launcher_web.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -258,7 +260,7 @@ class PurchaseDialog {
         'metadata': metadata,
       };
 
-      print('--- Moyasar Payment CURL ---');
+      print('--- Moyasar Payment CURL with new change3 ---');
       print(
           "curl -X POST https://api.moyasar.com/v1/invoices -H 'Authorization: $authHeader' -H 'Content-Type: application/json' -d '${json.encode(body)}'");
       print('----------------------------');
@@ -277,13 +279,19 @@ class PurchaseDialog {
 
       Navigator.of(context).pop();
 
-      final uri = Uri.parse(response.url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      if (kIsWeb) {
+        openUrlInNewTab(response.url);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
-        );
+        final uri = Uri.parse(response.url);
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
+            );
+          }
+        }
       }
     } catch (e) {
       Navigator.of(context).pop();
