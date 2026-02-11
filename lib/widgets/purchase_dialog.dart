@@ -1,8 +1,6 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trivia_game/utils/url_launcher_web.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -230,67 +228,40 @@ class PurchaseDialog {
 
       final paymentService = PaymentService(apiKey: moyasarApiKey);
 
-      // Construct metadata and body for logging and request
-      final metadata = {
-        'user_id': userId,
-        'user_email': userProfile.email,
-        'user_name': userProfile.name,
-        'user_mobile': userProfile.mobile,
-        'package_id': package.id,
-        'package_title': package.title,
-        'games_count': package.gameCount.toString(),
-        'price': package.price,
-      };
-
-      final effectiveCallbackUrl =
-          callbackUrl ?? 'https://allmahgame.com/payment-callback';
-      final effectiveSuccessUrl =
-          successUrl ?? 'https://allmahgame.com/payment-success';
-      final description = 'شراء ${package.title} - allmahgame';
-
-      // Print CURL for debugging
-      final authHeader =
-          'Basic ${base64Encode(utf8.encode('$moyasarApiKey:'))}';
-      final body = {
-        'amount': package.priceInHalalas,
-        'currency': 'SAR',
-        'description': description,
-        'callback_url': effectiveCallbackUrl,
-        'success_url': effectiveSuccessUrl,
-        'metadata': metadata,
-      };
-
-      print('--- Moyasar Payment CURL with new change3 ---');
-      print(
-          "curl -X POST https://api.moyasar.com/v1/invoices -H 'Authorization: $authHeader' -H 'Content-Type: application/json' -d '${json.encode(body)}'");
-      print('----------------------------');
-
       final response = await paymentService.createInvoice(
         amount: package.priceInHalalas,
-        description: description,
-        callbackUrl: effectiveCallbackUrl,
-        successUrl: effectiveSuccessUrl,
-        metadata: metadata,
+        description: 'شراء ${package.title} - allmahgame',
+        callbackUrl: callbackUrl ?? 'https://allmahgame.com/payment-callback',
+        successUrl: successUrl ?? 'https://allmahgame.com/payment-success',
+        metadata: {
+          'user_id': userId,
+          'user_email': userProfile.email,
+          'user_name': userProfile.name,
+          'user_mobile': userProfile.mobile,
+          'package_id': package.id,
+          'package_title': package.title,
+          'games_count': package.gameCount.toString(),
+          'price': package.price,
+        },
       );
-
-      print('Moyasar Response ID: ${response.id}');
-      print('Moyasar Response Status: ${response.status}');
-      print('Moyasar Response URL: ${response.url}');
 
       Navigator.of(context).pop();
 
-      if (kIsWeb) {
-        openUrlInNewTab(response.url);
+      // Open payment URL
+      final uri = Uri.parse(response.url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(
+          uri,
+          mode: kIsWeb
+              ? LaunchMode.externalApplication
+              : LaunchMode.externalApplication,
+          webOnlyWindowName: '_blank',
+        );
       } else {
-        final uri = Uri.parse(response.url);
-        if (await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
-            );
-          }
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
+          );
         }
       }
     } catch (e) {
