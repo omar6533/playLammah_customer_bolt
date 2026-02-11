@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/lammh_brand_header.dart';
 
 @RoutePage()
 class LoginScreen extends StatefulWidget {
@@ -71,10 +72,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.quiz,
-                        size: 100,
-                        color: AppColors.white,
+                      const LammhBrandHeader(
+                        logoSize: 100,
+                        logoColor: AppColors.white,
+                        showTagline: false,
+                        titleFontSize: 28,
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       Text(

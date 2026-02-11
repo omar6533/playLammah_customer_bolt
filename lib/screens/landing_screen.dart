@@ -12,6 +12,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/purchase_dialog.dart';
+import '../widgets/lammh_brand_header.dart';
 import '../config/app_config.dart';
 
 @RoutePage()
@@ -198,6 +199,14 @@ class _LandingScreenState extends State<LandingScreen> {
   Widget _buildHeroSection() {
     return Column(
       children: [
+        const LammhBrandHeader(
+          logoSize: 100,
+          logoColor: AppColors.white,
+          showTagline: true,
+          titleFontSize: 32,
+          taglineFontSize: 18,
+        ),
+        const SizedBox(height: AppSpacing.xxl),
         Text(
           'إنشاع لعبة',
           style: AppTextStyles.extraLargeTvBold.copyWith(

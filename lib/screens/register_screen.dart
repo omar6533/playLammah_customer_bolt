@@ -9,6 +9,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../widgets/primary_button.dart';
+import '../widgets/lammh_brand_header.dart';
 
 @RoutePage()
 class RegisterScreen extends StatefulWidget {
@@ -91,10 +92,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
-                        Icons.person_add,
-                        size: 80,
-                        color: AppColors.white,
+                      const LammhBrandHeader(
+                        logoSize: 80,
+                        logoColor: AppColors.white,
+                        showTagline: false,
+                        titleFontSize: 24,
                       ),
                       const SizedBox(height: AppSpacing.lg),
                       Text(

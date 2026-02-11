@@ -5,7 +5,7 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
+import '../widgets/lammh_brand_header.dart';
 
 @RoutePage()
 class SplashScreen extends StatefulWidget {
@@ -42,34 +42,12 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: const BoxDecoration(
           gradient: AppColors.primaryGradient,
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.quiz,
-                size: 120,
-                color: AppColors.white,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Trivia Game',
-                style: AppTextStyles.textXx2TvExtraBold.copyWith(
-                  color: AppColors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'لعبة المعرفة',
-                style: AppTextStyles.xlargeTvBold.copyWith(
-                  color: AppColors.white,
-                ),
-              ),
-              const SizedBox(height: 48),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-              ),
-            ],
+        child: const Center(
+          child: LammhBrandHeader(
+            logoSize: 120,
+            logoColor: AppColors.white,
+            showTagline: true,
+            showLoadingIndicator: true,
           ),
         ),
       ),
