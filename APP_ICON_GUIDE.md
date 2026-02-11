@@ -19,7 +19,7 @@ Save the following SVG code as `lammh_icon.svg`:
   <defs>
     <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" style="stop-color:#E84855;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#F06292;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC0901;stop-opacity:1" />
     </linearGradient>
   </defs>
 
