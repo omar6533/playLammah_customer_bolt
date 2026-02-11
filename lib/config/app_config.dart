@@ -1,8 +1,8 @@
 class AppConfig {
   static const bool useMockData = true;
 
-  static const String appName = 'PlayLammh';
-  static const String appNameAr = 'لمة ونتحدى';
+  static const String appName = 'لمة | Lammh';
+  static const String appNameAr = 'لمة';
 
   static const int initialTrials = 1;
   static const int maxQuestionsPerGame = 25;
