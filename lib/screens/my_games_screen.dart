@@ -182,6 +182,7 @@ class _MyGamesScreenState extends State<MyGamesScreen> {
                     callbackUrl: AppConfig.paymentCallbackUrl,
                     successUrl: AppConfig.paymentSuccessUrl,
                     onPackageSelected: (package) {
+                      if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text('تم اختيار: ${package.title}'),

@@ -38,27 +38,43 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   WebViewController? _controller;
   bool _isLoading = true;
   Timer? _pollTimer;
+  ScaffoldMessengerState? _messenger;
+  StackRouter? _router;
+  bool _isDisposed = false;
 
   @override
-  void initState() {
-    super.initState();
-    if (kIsWeb) {
-      _openPaymentInNewTab();
-    } else {
-      _initializeController();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isDisposed && mounted) {
+      _messenger = ScaffoldMessenger.of(context);
+      _router = context.router;
     }
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_isDisposed) {
+        if (kIsWeb) {
+          _openPaymentInNewTab();
+        } else {
+          _initializeController();
+        }
+      }
+    });
+  }
+
+  @override
   void dispose() {
+    _isDisposed = true;
     _pollTimer?.cancel();
+    _controller = null;
     super.dispose();
   }
 
   Future<void> _openPaymentInNewTab() async {
-    // Capture the messenger and router before async operations
-    final messenger = ScaffoldMessenger.of(context);
-    final router = context.router;
+    if (_isDisposed) return;
 
     final uri = Uri.parse(widget.paymentUrl);
     if (await canLaunchUrl(uri)) {
@@ -68,8 +84,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
         webOnlyWindowName: '_blank',
       );
 
-      if (mounted) {
-        messenger.showSnackBar(
+      if (mounted && !_isDisposed && _messenger != null) {
+        _messenger!.showSnackBar(
           const SnackBar(
             content: Text('تم فتح صفحة الدفع في نافذة جديدة'),
             duration: Duration(seconds: 3),
@@ -77,8 +93,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
         );
 
         Future.delayed(const Duration(seconds: 1), () {
-          if (mounted) {
-            router.pop();
+          if (mounted && !_isDisposed && _router != null) {
+            _router!.pop();
           }
         });
       }
@@ -86,13 +102,15 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   }
 
   void _initializeController() {
+    if (_isDisposed) return;
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(AppColors.white)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            if (mounted) {
+            if (mounted && !_isDisposed) {
               setState(() {
                 _isLoading = true;
               });
@@ -100,14 +118,16 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
             }
           },
           onPageFinished: (String url) {
-            if (mounted) {
+            if (mounted && !_isDisposed) {
               setState(() {
                 _isLoading = false;
               });
             }
           },
           onNavigationRequest: (NavigationRequest request) {
-            _checkUrlForRedirect(request.url);
+            if (!_isDisposed) {
+              _checkUrlForRedirect(request.url);
+            }
             return NavigationDecision.navigate;
           },
         ),
@@ -116,6 +136,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   }
 
   void _checkUrlForRedirect(String url) {
+    if (_isDisposed) return;
+
     if (url.contains('payment-success') ||
         url.contains(widget.successUrlPattern)) {
       _handlePaymentSuccess(url);
@@ -135,7 +157,23 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   }
 
   void _handlePaymentSuccess(String url, {String? invoiceId}) async {
-    if (!mounted) return;
+    if (!mounted || _isDisposed) return;
+
+    // Capture context-dependent references before async operations
+    FirebaseService? firebaseService;
+    UserBloc? userBloc;
+    StackRouter? router;
+
+    try {
+      firebaseService = context.read<FirebaseService>();
+      userBloc = context.read<UserBloc>();
+      router = _router ?? context.router;
+    } catch (e) {
+      debugPrint('Error reading context in _handlePaymentSuccess: $e');
+      return;
+    }
+
+    if (firebaseService == null || userBloc == null || router == null) return;
 
     try {
       String? extractedInvoiceId = invoiceId;
@@ -159,14 +197,11 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
           final userId = invoice.metadata['user_id'] as String?;
 
           if (gamesCount != null && gamesCount > 0 && userId != null) {
-            final firebaseService = context.read<FirebaseService>();
             await firebaseService.addGamesToUser(userId, gamesCount);
-
-            final userBloc = context.read<UserBloc>();
             userBloc.add(LoadUserEvent(userId: userId));
 
-            if (mounted) {
-              context.router.replace(
+            if (mounted && !_isDisposed) {
+              router.replace(
                 PaymentSuccessRoute(
                   invoiceId: extractedInvoiceId,
                   gamesCount: gamesCount,
@@ -178,8 +213,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
         }
       }
 
-      if (mounted) {
-        context.router.replace(
+      if (mounted && !_isDisposed) {
+        router.replace(
           PaymentSuccessRoute(
             invoiceId: extractedInvoiceId,
             gamesCount: widget.gamesCount,
@@ -188,8 +223,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
       }
     } catch (e) {
       debugPrint('Error processing payment success: $e');
-      if (mounted) {
-        context.router.replace(
+      if (mounted && !_isDisposed) {
+        router.replace(
           PaymentSuccessRoute(
             gamesCount: widget.gamesCount,
           ),
@@ -199,8 +234,8 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   }
 
   void _navigateToFailure() {
-    if (mounted) {
-      context.router.replace(PaymentFailureRoute());
+    if (mounted && !_isDisposed && _router != null) {
+      _router!.replace(PaymentFailureRoute());
     }
   }
 
@@ -225,7 +260,7 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
               const SizedBox(height: 24),
               Text(
                 'جاري فتح صفحة الدفع...',
-                style: AppTextStyles.largeTv,
+                style: AppTextStyles.bodyMedium,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
@@ -275,20 +310,24 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
   }
 
   void _showCancelDialog() {
+    if (_isDisposed) return;
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('إلغاء الدفع'),
         content: const Text('هل أنت متأكد من إلغاء عملية الدفع؟'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('لا'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              context.router.pop();
+              Navigator.of(dialogContext).pop();
+              if (!_isDisposed && _router != null) {
+                _router!.pop();
+              }
             },
             child: const Text('نعم'),
           ),

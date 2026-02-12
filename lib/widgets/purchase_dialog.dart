@@ -78,6 +78,13 @@ class PurchaseDialog {
   }) {
     final packageList = packages ?? getDefaultPackages();
 
+    // Capture BLoC states, messenger, router, and navigator BEFORE showing dialog
+    final authState = context.read<AuthBloc>().state;
+    final userState = context.read<UserBloc>().state;
+    final messenger = ScaffoldMessenger.of(context);
+    final router = context.router;
+    final navigator = Navigator.of(context);
+
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -168,14 +175,22 @@ class PurchaseDialog {
                           child: _buildPackageButton(
                             package: package,
                             onTap: () async {
-                              Navigator.of(dialogContext).pop();
+                              print('🛒 Package selected: ${package.title}');
+                              print('🛒 Calling _handlePackagePurchase');
                               await _handlePackagePurchase(
                                 context: context,
+                                dialogContext: dialogContext,
                                 package: package,
+                                authState: authState,
+                                userState: userState,
+                                messenger: messenger,
+                                router: router,
+                                navigator: navigator,
                                 moyasarApiKey: moyasarApiKey,
                                 callbackUrl: callbackUrl,
                                 successUrl: successUrl,
                               );
+                              print('🛒 Purchase handling completed');
                               onPackageSelected?.call(package);
                             },
                           ),
@@ -192,23 +207,58 @@ class PurchaseDialog {
 
   static Future<void> _handlePackagePurchase({
     required BuildContext context,
+    required BuildContext dialogContext,
     required GamePackage package,
+    required AuthState authState,
+    required UserState userState,
+    required ScaffoldMessengerState messenger,
+    required StackRouter router,
+    required NavigatorState navigator,
     String? moyasarApiKey,
     String? callbackUrl,
     String? successUrl,
   }) async {
+    print('💳 _handlePackagePurchase started');
+
+    // Close purchase dialog first
+    print('💳 Closing purchase dialog');
+    Navigator.of(dialogContext).pop();
+
     if (moyasarApiKey == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      print('💳 API key is null');
+      messenger.showSnackBar(
         const SnackBar(content: Text('مفتاح API غير متوفر')),
       );
       return;
     }
 
-    try {
-      final navigator = Navigator.of(context);
-      final router = context.router;
-      final scaffoldMessenger = ScaffoldMessenger.of(context);
+    print('💳 API key available: ${moyasarApiKey.substring(0, 10)}...');
 
+    print('💳 Auth state: ${authState.runtimeType}');
+    print('💳 User state: ${userState.runtimeType}');
+
+    if (authState is! Authenticated || userState is! UserLoaded) {
+      print('💳 User not authenticated or profile not loaded');
+      messenger.showSnackBar(
+        const SnackBar(content: Text('خطأ في بيانات المستخدم')),
+      );
+      return;
+    }
+
+    final userId = authState.userId;
+    final userProfile = userState.userProfile;
+
+    print('💳 User ID: $userId');
+    print('💳 User email: ${userProfile.email}');
+
+    try {
+      // Show loading dialog
+      if (!context.mounted) {
+        print('💳 Context not mounted before showing loading dialog');
+        return;
+      }
+
+      print('💳 Showing loading dialog');
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -217,22 +267,11 @@ class PurchaseDialog {
         ),
       );
 
-      final authState = context.read<AuthBloc>().state;
-      final userState = context.read<UserBloc>().state;
-
-      if (authState is! Authenticated || userState is! UserLoaded) {
-        navigator.pop();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(content: Text('خطأ في بيانات المستخدم')),
-        );
-        return;
-      }
-
-      final userId = authState.userId;
-      final userProfile = userState.userProfile;
-
+      print('💳 Creating payment service');
       final paymentService = PaymentService(apiKey: moyasarApiKey);
 
+      print(
+          '💳 Calling createInvoice API with amount: ${package.priceInHalalas}');
       final response = await paymentService.createInvoice(
         amount: package.priceInHalalas,
         description: 'شراء ${package.title} - allmahgame',
@@ -250,8 +289,14 @@ class PurchaseDialog {
         },
       );
 
+      print('💳 API response received: ${response.url}');
+
+      // Close loading dialog
+      print('💳 Closing loading dialog');
       navigator.pop();
 
+      // Navigate to payment webview
+      print('💳 Navigating to payment webview');
       router.push(
         PaymentWebviewRoute(
           paymentUrl: response.url,
@@ -260,13 +305,13 @@ class PurchaseDialog {
           gamesCount: package.gameCount,
         ),
       );
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
-        );
-      }
+    } catch (e, stackTrace) {
+      print('💳 Error occurred: $e');
+      print('💳 Stack trace: $stackTrace');
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+      );
     }
   }
 
