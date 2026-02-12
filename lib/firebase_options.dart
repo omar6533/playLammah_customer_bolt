@@ -42,20 +42,20 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDCxMT_ouWkmcSNw015ANi-MwvsDryHqlE',
-    appId: '1:564436165702:android:YOUR_ANDROID_APP_ID',
+    apiKey: 'AIzaSyB1JGc-FG8PvSj1b-0eUtHcGRtJtaEoR-Y',
+    appId: '1:564436165702:android:fa81074ab75495efab9647',
     messagingSenderId: '564436165702',
     projectId: 'allmahgame',
     storageBucket: 'allmahgame.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDCxMT_ouWkmcSNw015ANi-MwvsDryHqlE',
-    appId: '1:564436165702:ios:YOUR_IOS_APP_ID',
+    apiKey: 'AIzaSyCg2XmROxUb3D5uuB3-rtQSTgpeNLAYSqM',
+    appId: '1:564436165702:ios:748a53aa671ebcd5ab9647',
     messagingSenderId: '564436165702',
     projectId: 'allmahgame',
     storageBucket: 'allmahgame.firebasestorage.app',
-    iosBundleId: 'com.example.triviaGame',
+    iosBundleId: 'com.play.playLammh',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

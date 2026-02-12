@@ -58,7 +58,7 @@ class _LandingScreenState extends State<LandingScreen> {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        _buildTopNavigation(context),
+                        _buildTopNavigation(context, userState),
                         const SizedBox(height: AppSpacing.xxxl),
                         _buildHeroSection(),
                         const SizedBox(height: AppSpacing.xxl),
@@ -85,70 +85,380 @@ class _LandingScreenState extends State<LandingScreen> {
     );
   }
 
-  Widget _buildTopNavigation(BuildContext context) {
+  Widget _buildTopNavigation(BuildContext context, UserLoaded userState) {
+    final hasTrials = userState.userProfile.trialsRemaining > 0;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+
+    if (isMobile) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.white.withOpacity(0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: const Icon(
+                    Icons.person,
+                    color: AppColors.white,
+                    size: 30,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    userState.userProfile.name,
+                    style: AppTextStyles.mediumBold.copyWith(
+                      color: AppColors.white,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildNavButton(
+                      'إنشاء لعبة\nجديدة',
+                      Icons.add,
+                      const LinearGradient(
+                        colors: [Color(0xFFFF6B35), Color(0xFFF7931E)],
+                      ),
+                      () => context.router.push(const CategorySelectionRoute()),
+                    ),
+                    if (hasTrials)
+                      Positioned(
+                        top: -8,
+                        right: -8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4CAF50),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.white,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.2),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            '${userState.userProfile.trialsRemaining}',
+                            style: AppTextStyles.mediumBold.copyWith(
+                              color: AppColors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                IconButton(
+                  icon: const Icon(
+                    Icons.menu,
+                    color: AppColors.white,
+                    size: 30,
+                  ),
+                  onPressed: () {
+                    _showMobileMenu(context, userState);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.sm,
-        alignment: WrapAlignment.center,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildNavButton(
-            'إنشاء لعبة\nجديدة',
-            Icons.add,
-            const LinearGradient(
-              colors: [Color(0xFFFF6B35), Color(0xFFF7931E)],
-            ),
-            () => context.router.push(const CategorySelectionRoute()),
-          ),
-          _buildNavButton(
-            'اشتر لعبة\nجديدة',
-            Icons.shopping_cart,
-            const LinearGradient(
-              colors: [Color(0xFFF7931E), Color(0xFFFDC830)],
-            ),
-            () => PurchaseDialog.show(
-              context: context,
-              moyasarApiKey: AppConfig.moyasarApiKey,
-              callbackUrl: AppConfig.paymentCallbackUrl,
-              successUrl: AppConfig.paymentSuccessUrl,
-              onPackageSelected: (package) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('تم اختيار: ${package.title}'),
+          Row(
+            children: [
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.white.withOpacity(0.3),
+                    width: 2,
                   ),
-                );
-              },
-            ),
+                ),
+                child: const Icon(
+                  Icons.person,
+                  color: AppColors.white,
+                  size: 30,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                userState.userProfile.name,
+                style: AppTextStyles.mediumBold.copyWith(
+                  color: AppColors.white,
+                  fontSize: 18,
+                ),
+              ),
+            ],
           ),
-          _buildNavButton(
-            'My\nGames',
-            Icons.emoji_events,
-            const LinearGradient(
-              colors: [Color(0xFFFDC830), Color(0xFFF9D423)],
-            ),
-            () => context.router.push(const MyGamesRoute()),
-          ),
-          _buildNavButton(
-            'تواصل\nمعنا',
-            Icons.phone,
-            null,
-            () {},
-            backgroundColor: AppColors.white.withOpacity(0.2),
-            textColor: AppColors.white,
-          ),
-          _buildNavButton(
-            'الخروج',
-            Icons.logout,
-            null,
-            () {
-              context.read<AuthBloc>().add(const LogoutEvent());
-              context.router.replace(const LoginRoute());
-            },
-            backgroundColor: AppColors.white,
-            textColor: AppColors.primaryRed,
+          const Spacer(),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.sm,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildNavButton(
+                'إنشاء لعبة\nجديدة',
+                Icons.add,
+                const LinearGradient(
+                  colors: [Color(0xFFFF6B35), Color(0xFFF7931E)],
+                ),
+                () => context.router.push(const CategorySelectionRoute()),
+              ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _buildNavButton(
+                    'اشتر لعبة\nجديدة',
+                    Icons.shopping_cart,
+                    const LinearGradient(
+                      colors: [Color(0xFFF7931E), Color(0xFFFDC830)],
+                    ),
+                    () => PurchaseDialog.show(
+                      context: context,
+                      moyasarApiKey: AppConfig.moyasarApiKey,
+                      callbackUrl: AppConfig.paymentCallbackUrl,
+                      successUrl: AppConfig.paymentSuccessUrl,
+                      onPackageSelected: (package) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('تم اختيار: ${package.title}'),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (hasTrials)
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CAF50),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.white,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          '${userState.userProfile.trialsRemaining}',
+                          style: AppTextStyles.mediumBold.copyWith(
+                            color: AppColors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              _buildNavButton(
+                'My\nGames',
+                Icons.emoji_events,
+                const LinearGradient(
+                  colors: [Color(0xFFFDC830), Color(0xFFF9D423)],
+                ),
+                () => context.router.push(const MyGamesRoute()),
+              ),
+              _buildNavButton(
+                'تواصل\nمعنا',
+                Icons.phone,
+                null,
+                () {},
+                backgroundColor: AppColors.white.withOpacity(0.2),
+                textColor: AppColors.white,
+              ),
+              _buildNavButton(
+                'الخروج',
+                Icons.logout,
+                null,
+                () {
+                  context.read<AuthBloc>().add(const LogoutEvent());
+                  context.router.replace(const LoginRoute());
+                },
+                backgroundColor: AppColors.white,
+                textColor: AppColors.primaryRed,
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  void _showMobileMenu(BuildContext context, UserLoaded userState) {
+    final hasTrials = userState.userProfile.trialsRemaining > 0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFF7931E), Color(0xFFFDC830)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child:
+                      const Icon(Icons.shopping_cart, color: AppColors.white),
+                ),
+                title: const Text('اشتر لعبة جديدة'),
+                trailing: hasTrials
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4CAF50),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${userState.userProfile.trialsRemaining}',
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                    : null,
+                onTap: () {
+                  Navigator.pop(context);
+                  PurchaseDialog.show(
+                    context: context,
+                    moyasarApiKey: AppConfig.moyasarApiKey,
+                    callbackUrl: AppConfig.paymentCallbackUrl,
+                    successUrl: AppConfig.paymentSuccessUrl,
+                    onPackageSelected: (package) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('تم اختيار: ${package.title}'),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFFFDC830), Color(0xFFF9D423)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.emoji_events, color: AppColors.white),
+                ),
+                title: const Text('My Games'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.router.push(const MyGamesRoute());
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryRed.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.phone, color: AppColors.primaryRed),
+                ),
+                title: const Text('تواصل معنا'),
+                onTap: () {
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryRed,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.logout, color: AppColors.white),
+                ),
+                title: const Text('الخروج'),
+                onTap: () {
+                  Navigator.pop(context);
+                  context.read<AuthBloc>().add(const LogoutEvent());
+                  context.router.replace(const LoginRoute());
+                },
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -184,7 +494,7 @@ class _LandingScreenState extends State<LandingScreen> {
             const SizedBox(width: AppSpacing.xs),
             Text(
               label,
-              style: AppTextStyles.mediumRegular.copyWith(
+              style: AppTextStyles.mediumBold.copyWith(
                 color: textColor ?? AppColors.white,
                 fontWeight: FontWeight.w600,
               ),
