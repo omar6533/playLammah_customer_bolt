@@ -38,6 +38,7 @@ class FirebaseService {
         'name': name,
         'mobile': mobile,
         'trials_remaining': 1,
+        'available_games': 0,
         'created_at': FieldValue.serverTimestamp(),
       });
     }

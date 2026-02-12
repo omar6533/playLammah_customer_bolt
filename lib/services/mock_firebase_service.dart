@@ -353,4 +353,15 @@ class MockFirebaseService {
       }
     }
   }
+
+  Future<void> addGamesToUser(String userId, int gamesToAdd) async {
+    await _simulateDelay();
+
+    if (_users.containsKey(userId)) {
+      final user = _users[userId]!;
+      _users[userId] = user.copyWith(
+        trialsRemaining: user.trialsRemaining + gamesToAdd,
+      );
+    }
+  }
 }

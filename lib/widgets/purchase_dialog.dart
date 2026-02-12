@@ -78,10 +78,9 @@ class PurchaseDialog {
   }) {
     final packageList = packages ?? getDefaultPackages();
 
-    // Capture BLoC states, messenger, router, and navigator BEFORE showing dialog
+    // Capture BLoC states, router, and navigator BEFORE showing dialog
     final authState = context.read<AuthBloc>().state;
     final userState = context.read<UserBloc>().state;
-    final messenger = ScaffoldMessenger.of(context);
     final router = context.router;
     final navigator = Navigator.of(context);
 
@@ -90,116 +89,137 @@ class PurchaseDialog {
       barrierDismissible: true,
       builder: (dialogContext) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: EdgeInsets.all(AppSpacing.lg),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 600),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(AppSpacing.lg),
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryRed,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 40),
-                    Text(
-                      'إنشاء لعبة',
-                      style: AppTextStyles.extraLargeTvBold.copyWith(
-                        color: AppColors.white,
-                        fontSize: 28,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close,
-                          color: AppColors.white, size: 28),
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                    ),
-                  ],
-                ),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final maxHeight = MediaQuery.of(context).size.height * 0.9;
+
+            return Container(
+              constraints: BoxConstraints(
+                maxWidth: 600,
+                maxHeight: maxHeight,
               ),
-              Padding(
-                padding: EdgeInsets.all(AppSpacing.xl),
-                child: Column(
-                  children: [
-                    Text(
-                      'لعبة جماعية تفاعلية يختار فيها معرفتكم و ثقافتكم',
-                      style: AppTextStyles.largeTvBold.copyWith(
-                        color: const Color(0xFF333333),
-                        fontSize: 18,
-                      ),
-                      textAlign: TextAlign.center,
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.md,
                     ),
-                    SizedBox(height: AppSpacing.lg),
-                    Container(
-                      padding: EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFF3E0),
-                        borderRadius: BorderRadius.circular(12),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryRed,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
                       ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const SizedBox(width: 40),
+                        Text(
+                          'إنشاء لعبة',
+                          style: AppTextStyles.extraLargeTvBold.copyWith(
+                            color: AppColors.white,
+                            fontSize: 24,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close,
+                              color: AppColors.white, size: 24),
+                          onPressed: () => Navigator.of(dialogContext).pop(),
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'لإنشاء لعبة جديدة اضغط على ( لعبة جديدة )',
-                            style: AppTextStyles.mediumRegular.copyWith(
-                              color: const Color(0xFF666666),
-                              fontSize: 14,
+                            'لعبة جماعية تفاعلية يختار فيها معرفتكم و ثقافتكم',
+                            style: AppTextStyles.largeTvBold.copyWith(
+                              color: const Color(0xFF333333),
+                              fontSize: 16,
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: AppSpacing.xs),
-                          Text(
-                            'و لاسترجاع الألعاب السابقة، اضغط على ( ألعابي )',
-                            style: AppTextStyles.mediumRegular.copyWith(
-                              color: const Color(0xFF666666),
-                              fontSize: 14,
+                          const SizedBox(height: AppSpacing.md),
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF3E0),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            textAlign: TextAlign.center,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'لإنشاء لعبة جديدة اضغط على ( لعبة جديدة )',
+                                  style: AppTextStyles.mediumRegular.copyWith(
+                                    color: const Color(0xFF666666),
+                                    fontSize: 13,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: AppSpacing.xs),
+                                Text(
+                                  'و لاسترجاع الألعاب السابقة، اضغط على ( ألعابي )',
+                                  style: AppTextStyles.mediumRegular.copyWith(
+                                    color: const Color(0xFF666666),
+                                    fontSize: 13,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
+                          const SizedBox(height: AppSpacing.lg),
+                          ...packageList.map((package) => Padding(
+                                padding: const EdgeInsets.only(
+                                    bottom: AppSpacing.sm),
+                                child: _buildPackageButton(
+                                  package: package,
+                                  onTap: () async {
+                                    print(
+                                        '🛒 Package selected: ${package.title}');
+                                    print('🛒 Calling _handlePackagePurchase');
+                                    await _handlePackagePurchase(
+                                      context: context,
+                                      dialogContext: dialogContext,
+                                      package: package,
+                                      authState: authState,
+                                      userState: userState,
+                                      router: router,
+                                      navigator: navigator,
+                                      moyasarApiKey: moyasarApiKey,
+                                      callbackUrl: callbackUrl,
+                                      successUrl: successUrl,
+                                    );
+                                    print('🛒 Purchase handling completed');
+                                    onPackageSelected?.call(package);
+                                  },
+                                ),
+                              )),
                         ],
                       ),
                     ),
-                    SizedBox(height: AppSpacing.xl),
-                    ...packageList.map((package) => Padding(
-                          padding: EdgeInsets.only(bottom: AppSpacing.md),
-                          child: _buildPackageButton(
-                            package: package,
-                            onTap: () async {
-                              print('🛒 Package selected: ${package.title}');
-                              print('🛒 Calling _handlePackagePurchase');
-                              await _handlePackagePurchase(
-                                context: context,
-                                dialogContext: dialogContext,
-                                package: package,
-                                authState: authState,
-                                userState: userState,
-                                messenger: messenger,
-                                router: router,
-                                navigator: navigator,
-                                moyasarApiKey: moyasarApiKey,
-                                callbackUrl: callbackUrl,
-                                successUrl: successUrl,
-                              );
-                              print('🛒 Purchase handling completed');
-                              onPackageSelected?.call(package);
-                            },
-                          ),
-                        )),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -211,7 +231,6 @@ class PurchaseDialog {
     required GamePackage package,
     required AuthState authState,
     required UserState userState,
-    required ScaffoldMessengerState messenger,
     required StackRouter router,
     required NavigatorState navigator,
     String? moyasarApiKey,
@@ -226,9 +245,11 @@ class PurchaseDialog {
 
     if (moyasarApiKey == null) {
       print('💳 API key is null');
-      messenger.showSnackBar(
-        const SnackBar(content: Text('مفتاح API غير متوفر')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('مفتاح API غير متوفر')),
+        );
+      }
       return;
     }
 
@@ -239,9 +260,11 @@ class PurchaseDialog {
 
     if (authState is! Authenticated || userState is! UserLoaded) {
       print('💳 User not authenticated or profile not loaded');
-      messenger.showSnackBar(
-        const SnackBar(content: Text('خطأ في بيانات المستخدم')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('خطأ في بيانات المستخدم')),
+        );
+      }
       return;
     }
 
@@ -309,9 +332,11 @@ class PurchaseDialog {
       print('💳 Error occurred: $e');
       print('💳 Stack trace: $stackTrace');
       navigator.pop();
-      messenger.showSnackBar(
-        SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+        );
+      }
     }
   }
 
@@ -323,9 +348,9 @@ class PurchaseDialog {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl,
-          vertical: AppSpacing.lg,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
           color: package.color,
@@ -345,14 +370,14 @@ class PurchaseDialog {
               package.price,
               style: AppTextStyles.extraLargeTvBold.copyWith(
                 color: AppColors.white,
-                fontSize: 24,
+                fontSize: 20,
               ),
             ),
             Text(
               package.title,
               style: AppTextStyles.extraLargeTvBold.copyWith(
                 color: AppColors.white,
-                fontSize: 24,
+                fontSize: 20,
               ),
             ),
           ],

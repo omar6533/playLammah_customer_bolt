@@ -10,13 +10,9 @@ import 'mock_firebase_service.dart';
 class AppService {
   static final AppService _instance = AppService._internal();
   factory AppService() => _instance;
-  AppService._internal() {
-    if (!isMockMode) {
-      _firebaseService = FirebaseService();
-    }
-  }
+  AppService._internal();
 
-  late final FirebaseService _firebaseService;
+  final FirebaseService _firebaseService = FirebaseService();
   final MockFirebaseService _mockService = MockFirebaseService();
 
   bool get isMockMode => AppConfig.useMockData;
@@ -129,11 +125,14 @@ class AppService {
       await _mockService.decrementTrial(userId);
     } else {
       final profile = await _firebaseService.getUserProfile(userId);
+      // First use free trials, then purchased games
       if (profile.trialsRemaining > 0) {
         await _firebaseService.updateTrialsRemaining(
           userId,
           profile.trialsRemaining - 1,
         );
+      } else if (profile.availableGames > 0) {
+        await _firebaseService.decrementAvailableGames(userId);
       }
     }
   }
@@ -290,6 +289,14 @@ class AppService {
       final game = await _firebaseService.getGameById(gameId);
       await _firebaseService.resetGameForReplay(gameId);
       await _firebaseService.updateGamePlayCount(gameId, game.playCount + 1);
+    }
+  }
+
+  Future<void> addGamesToUser(String userId, int gamesToAdd) async {
+    if (isMockMode) {
+      await _mockService.addGamesToUser(userId, gamesToAdd);
+    } else {
+      await _firebaseService.addGamesToUser(userId, gamesToAdd);
     }
   }
 }

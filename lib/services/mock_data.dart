@@ -579,6 +579,7 @@ class MockData {
       name: 'Test User',
       mobile: '+966501234567',
       trialsRemaining: 5,
+      availableGames: 0,
       createdAt: DateTime.now().toIso8601String(),
     );
   }
