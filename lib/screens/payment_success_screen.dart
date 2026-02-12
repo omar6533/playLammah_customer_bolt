@@ -84,7 +84,8 @@ class PaymentSuccessScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.xxxl),
                   ElevatedButton(
                     onPressed: () {
-                      context.router.replaceAll([const LandingRoute()]);
+                      context.router.popUntilRoot();
+                      context.router.replace(const LandingRoute());
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.white,

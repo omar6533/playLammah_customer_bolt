@@ -1,7 +1,7 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
@@ -10,6 +10,7 @@ import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/user/user_bloc.dart';
 import '../bloc/user/user_state.dart';
+import '../routes/app_router.dart';
 
 class GamePackage {
   final String id;
@@ -204,6 +205,10 @@ class PurchaseDialog {
     }
 
     try {
+      final navigator = Navigator.of(context);
+      final router = context.router;
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -216,8 +221,8 @@ class PurchaseDialog {
       final userState = context.read<UserBloc>().state;
 
       if (authState is! Authenticated || userState is! UserLoaded) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
+        navigator.pop();
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text('خطأ في بيانات المستخدم')),
         );
         return;
@@ -245,30 +250,23 @@ class PurchaseDialog {
         },
       );
 
-      Navigator.of(context).pop();
+      navigator.pop();
 
-      // Open payment URL
-      final uri = Uri.parse(response.url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(
-          uri,
-          mode: kIsWeb
-              ? LaunchMode.externalApplication
-              : LaunchMode.externalApplication,
-          webOnlyWindowName: '_blank',
-        );
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('لا يمكن فتح رابط الدفع')),
-          );
-        }
-      }
-    } catch (e) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+      router.push(
+        PaymentWebviewRoute(
+          paymentUrl: response.url,
+          successUrlPattern: successUrl ?? 'payment-success',
+          callbackUrlPattern: callbackUrl ?? 'payment-callback',
+          gamesCount: package.gameCount,
+        ),
       );
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+        );
+      }
     }
   }
 

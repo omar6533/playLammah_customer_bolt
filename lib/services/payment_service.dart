@@ -43,6 +43,28 @@ class PaymentService {
       throw PaymentException('Error creating invoice: $e');
     }
   }
+
+  Future<PaymentInvoiceResponse> getInvoice(String invoiceId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/invoices/$invoiceId'),
+        headers: {
+          'Authorization': 'Basic ${base64Encode(utf8.encode('$apiKey:'))}',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return PaymentInvoiceResponse.fromJson(data);
+      } else {
+        throw PaymentException(
+          'Failed to get invoice: ${response.statusCode} - ${response.body}',
+        );
+      }
+    } catch (e) {
+      throw PaymentException('Error getting invoice: $e');
+    }
+  }
 }
 
 class PaymentInvoiceResponse {

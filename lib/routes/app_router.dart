@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:trivia_game/screens/payment_failure_screen.dart.dart';
+import 'package:trivia_game/screens/payment_failure_screen.dart';
+import 'package:trivia_game/screens/payment_webview_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
@@ -34,5 +35,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: GameOverRoute.page),
         AutoRoute(page: PaymentSuccessRoute.page),
         AutoRoute(page: PaymentFailureRoute.page),
+        AutoRoute(page: PaymentWebviewRoute.page),
       ];
 }

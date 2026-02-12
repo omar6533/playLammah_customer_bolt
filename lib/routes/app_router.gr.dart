@@ -283,6 +283,89 @@ class PaymentSuccessRouteArgs {
 }
 
 /// generated route for
+/// [PaymentWebviewScreen]
+class PaymentWebviewRoute extends PageRouteInfo<PaymentWebviewRouteArgs> {
+  PaymentWebviewRoute({
+    Key? key,
+    required String paymentUrl,
+    required String successUrlPattern,
+    required String callbackUrlPattern,
+    int? gamesCount,
+    List<PageRouteInfo>? children,
+  }) : super(
+          PaymentWebviewRoute.name,
+          args: PaymentWebviewRouteArgs(
+            key: key,
+            paymentUrl: paymentUrl,
+            successUrlPattern: successUrlPattern,
+            callbackUrlPattern: callbackUrlPattern,
+            gamesCount: gamesCount,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'PaymentWebviewRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<PaymentWebviewRouteArgs>();
+      return PaymentWebviewScreen(
+        key: args.key,
+        paymentUrl: args.paymentUrl,
+        successUrlPattern: args.successUrlPattern,
+        callbackUrlPattern: args.callbackUrlPattern,
+        gamesCount: args.gamesCount,
+      );
+    },
+  );
+}
+
+class PaymentWebviewRouteArgs {
+  const PaymentWebviewRouteArgs({
+    this.key,
+    required this.paymentUrl,
+    required this.successUrlPattern,
+    required this.callbackUrlPattern,
+    this.gamesCount,
+  });
+
+  final Key? key;
+
+  final String paymentUrl;
+
+  final String successUrlPattern;
+
+  final String callbackUrlPattern;
+
+  final int? gamesCount;
+
+  @override
+  String toString() {
+    return 'PaymentWebviewRouteArgs{key: $key, paymentUrl: $paymentUrl, successUrlPattern: $successUrlPattern, callbackUrlPattern: $callbackUrlPattern, gamesCount: $gamesCount}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! PaymentWebviewRouteArgs) return false;
+    return key == other.key &&
+        paymentUrl == other.paymentUrl &&
+        successUrlPattern == other.successUrlPattern &&
+        callbackUrlPattern == other.callbackUrlPattern &&
+        gamesCount == other.gamesCount;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      paymentUrl.hashCode ^
+      successUrlPattern.hashCode ^
+      callbackUrlPattern.hashCode ^
+      gamesCount.hashCode;
+}
+
+/// generated route for
 /// [PurchaseGamesScreen]
 class PurchaseGamesRoute extends PageRouteInfo<void> {
   const PurchaseGamesRoute({List<PageRouteInfo>? children})

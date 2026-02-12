@@ -7,18 +7,14 @@ import '../models/game_record.dart';
 import '../models/user_profile.dart';
 
 class FirebaseService {
-  final FirebaseAuth? _authOverride;
-  final FirebaseFirestore? _firestoreOverride;
-
-  FirebaseAuth get _auth => _authOverride ?? FirebaseAuth.instance;
-  FirebaseFirestore get _firestore =>
-      _firestoreOverride ?? FirebaseFirestore.instance;
+  final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
   FirebaseService({
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
-  })  : _authOverride = auth,
-        _firestoreOverride = firestore;
+  })  : _auth = auth ?? FirebaseAuth.instance,
+        _firestore = firestore ?? FirebaseFirestore.instance;
 
   // Auth Methods
   Future<UserCredential> signUp({
@@ -100,6 +96,32 @@ class FirebaseService {
     await _firestore.collection('user_profiles').doc(userId).update({
       'trials_remaining': remaining,
     });
+  }
+
+  Future<void> addGamesToUser(String userId, int gamesToAdd) async {
+    final docRef = _firestore.collection('user_profiles').doc(userId);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      final currentGames = doc.data()?['available_games'] as int? ?? 0;
+      await docRef.update({
+        'available_games': currentGames + gamesToAdd,
+      });
+    }
+  }
+
+  Future<void> decrementAvailableGames(String userId) async {
+    final docRef = _firestore.collection('user_profiles').doc(userId);
+    final doc = await docRef.get();
+
+    if (doc.exists) {
+      final currentGames = doc.data()?['available_games'] as int? ?? 0;
+      if (currentGames > 0) {
+        await docRef.update({
+          'available_games': currentGames - 1,
+        });
+      }
+    }
   }
 
   // Category Methods

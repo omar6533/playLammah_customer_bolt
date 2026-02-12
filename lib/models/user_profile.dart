@@ -6,6 +6,7 @@ class UserProfile extends Equatable {
   final String name;
   final String mobile;
   final int trialsRemaining;
+  final int availableGames;
   final String createdAt;
 
   const UserProfile({
@@ -14,6 +15,7 @@ class UserProfile extends Equatable {
     required this.name,
     required this.mobile,
     required this.trialsRemaining,
+    this.availableGames = 0,
     required this.createdAt,
   });
 
@@ -24,6 +26,7 @@ class UserProfile extends Equatable {
       name: json['name'] as String,
       mobile: json['mobile'] as String,
       trialsRemaining: json['trials_remaining'] as int,
+      availableGames: json['available_games'] as int? ?? 0,
       createdAt: json['created_at'] as String,
     );
   }
@@ -35,8 +38,29 @@ class UserProfile extends Equatable {
       'name': name,
       'mobile': mobile,
       'trials_remaining': trialsRemaining,
+      'available_games': availableGames,
       'created_at': createdAt,
     };
+  }
+
+  UserProfile copyWith({
+    String? id,
+    String? email,
+    String? name,
+    String? mobile,
+    int? trialsRemaining,
+    int? availableGames,
+    String? createdAt,
+  }) {
+    return UserProfile(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      name: name ?? this.name,
+      mobile: mobile ?? this.mobile,
+      trialsRemaining: trialsRemaining ?? this.trialsRemaining,
+      availableGames: availableGames ?? this.availableGames,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 
   @override
@@ -46,6 +70,7 @@ class UserProfile extends Equatable {
         name,
         mobile,
         trialsRemaining,
+        availableGames,
         createdAt,
       ];
 }

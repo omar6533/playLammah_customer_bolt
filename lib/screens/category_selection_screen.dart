@@ -8,6 +8,8 @@ import '../theme/app_spacing.dart';
 import '../bloc/category/category_bloc.dart';
 import '../bloc/category/category_event.dart';
 import '../bloc/category/category_state.dart';
+import '../utils/responsive_helper.dart';
+import '../widgets/primary_button.dart';
 import '../services/app_service.dart';
 
 @RoutePage()
@@ -92,6 +94,23 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   Widget _buildModernLayout(BuildContext context, CategoryLoaded state) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 900;
+
+    if (isMobile) {
+      return Column(
+        children: [
+          Expanded(
+            child: _buildCategoriesSection(context, state),
+          ),
+          Container(
+            color: AppColors.white,
+            child: _buildSelectedCategoriesPanel(context, state),
+          ),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(
@@ -233,6 +252,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     String categoryId,
   ) {
     final subcategories = _categorySubcategories[categoryId] ?? [];
+    final screenWidth = MediaQuery.of(context).size.width;
 
     if (subcategories.isEmpty) {
       return const Center(
@@ -245,83 +265,130 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       );
     }
 
-    return Wrap(
-      spacing: AppSpacing.md,
-      runSpacing: AppSpacing.md,
-      children: subcategories.map((subcategory) {
+    int crossAxisCount = 3;
+    double cardWidth = 180;
+
+    if (screenWidth < 600) {
+      crossAxisCount = 3;
+      cardWidth = (screenWidth - 80) / 3;
+    } else if (screenWidth < 900) {
+      crossAxisCount = 3;
+      cardWidth = (screenWidth - 120) / 3;
+    } else {
+      crossAxisCount = 4;
+      cardWidth = 200;
+    }
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        crossAxisSpacing: AppSpacing.sm,
+        mainAxisSpacing: AppSpacing.sm,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: subcategories.length,
+      itemBuilder: (context, index) {
+        final subcategory = subcategories[index];
         final isSelected =
             state.selectedSubcategoryIds.contains(subcategory.id);
+        final selectedCount = state.selectedSubcategoryIds.length;
+        final canSelect = isSelected || selectedCount < 6;
+
         return InkWell(
-          onTap: () {
-            context.read<CategoryBloc>().add(
-                  ToggleSubcategoryEvent(subcategoryId: subcategory.id),
-                );
-          },
-          child: Container(
-            width: 180,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE3F2FD),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color:
-                    isSelected ? const Color(0xFF2196F3) : Colors.transparent,
-                width: 3,
+          onTap: canSelect
+              ? () {
+                  context.read<CategoryBloc>().add(
+                        ToggleSubcategoryEvent(subcategoryId: subcategory.id),
+                      );
+                }
+              : () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('لا يمكن اختيار أكثر من 6 فئات'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+          child: Opacity(
+            opacity: canSelect ? 1.0 : 0.5,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFFE3F2FD),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color:
+                      isSelected ? const Color(0xFF2196F3) : Colors.transparent,
+                  width: 3,
+                ),
               ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryRed,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'باقي 6 لعبة',
-                    style: AppTextStyles.mediumRegular.copyWith(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.bold,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xs,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryRed,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'باقي 6 لعبة',
+                            style: TextStyle(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: screenWidth < 600 ? 8 : 12,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          subcategory.icon,
+                          style:
+                              TextStyle(fontSize: screenWidth < 600 ? 32 : 40),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  subcategory.icon,
-                  style: const TextStyle(fontSize: 48),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.md,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryRed,
-                    borderRadius: BorderRadius.vertical(
-                      bottom: Radius.circular(13),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xs,
+                      vertical:
+                          screenWidth < 600 ? AppSpacing.xs : AppSpacing.sm,
+                    ),
+                    decoration: const BoxDecoration(
+                      color: AppColors.primaryRed,
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      subcategory.nameAr,
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: screenWidth < 600 ? 11 : 14,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  child: Text(
-                    subcategory.nameAr,
-                    style: AppTextStyles.mediumBold.copyWith(
-                      color: AppColors.white,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
-      }).toList(),
+      },
     );
   }
 
@@ -331,92 +398,96 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   ) {
     final selectedCount = state.selectedSubcategoryIds.length;
     final canStart = selectedCount >= 6;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 900;
 
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.lg),
           child: Text(
             'الفئات المختارة ($selectedCount/6)',
             style: AppTextStyles.largeTvBold.copyWith(
-              fontSize: 24,
+              fontSize: isMobile ? 18 : 24,
             ),
             textAlign: TextAlign.center,
           ),
         ),
-        Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              children: state.selectedSubcategoryIds.map((subcategoryId) {
-                final subcategory = _findSubcategory(state, subcategoryId);
-                final category =
-                    _findCategoryForSubcategory(state, subcategoryId);
-                if (subcategory == null || category == null)
-                  return const SizedBox();
+        if (!isMobile)
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: state.selectedSubcategoryIds.map((subcategoryId) {
+                  final subcategory = _findSubcategory(state, subcategoryId);
+                  final category =
+                      _findCategoryForSubcategory(state, subcategoryId);
+                  if (subcategory == null || category == null)
+                    return const SizedBox();
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryRed,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              category.nameAr,
-                              style: AppTextStyles.mediumRegular.copyWith(
-                                color: AppColors.white.withOpacity(0.9),
-                                fontSize: 12,
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                category.nameAr,
+                                style: AppTextStyles.mediumRegular.copyWith(
+                                  color: AppColors.white.withOpacity(0.9),
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              subcategory.nameAr,
-                              style: AppTextStyles.mediumBold.copyWith(
-                                color: AppColors.white,
+                              const SizedBox(height: 4),
+                              Text(
+                                subcategory.nameAr,
+                                style: AppTextStyles.mediumBold.copyWith(
+                                  color: AppColors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          context.read<CategoryBloc>().add(
-                                ToggleSubcategoryEvent(
-                                    subcategoryId: subcategoryId),
-                              );
-                        },
-                        icon: const Icon(
-                          Icons.close,
-                          color: AppColors.white,
+                        IconButton(
+                          onPressed: () {
+                            context.read<CategoryBloc>().add(
+                                  ToggleSubcategoryEvent(
+                                      subcategoryId: subcategoryId),
+                                );
+                          },
+                          icon: const Icon(
+                            Icons.close,
+                            color: AppColors.white,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
-        ),
         Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.lg),
           child: Column(
             children: [
               if (!canStart)
                 Text(
                   'يجب اختيار 6 فئات على الأقل',
-                  style: AppTextStyles.mediumRegular.copyWith(
-                    color: AppColors.darkGray,
+                  style: AppTextStyles.mediumBold.copyWith(
+                    color: isMobile ? AppColors.white : AppColors.darkGray,
+                    fontSize: isMobile ? 14 : 16,
                   ),
                   textAlign: TextAlign.center,
                 ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: isMobile ? AppSpacing.sm : AppSpacing.md),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -427,8 +498,9 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     backgroundColor: canStart
                         ? const Color(0xFFF48FB1)
                         : AppColors.lightGray,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    padding: EdgeInsets.symmetric(
+                      vertical: isMobile ? AppSpacing.md : AppSpacing.lg,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -437,6 +509,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     'ابدأ اللعبة',
                     style: AppTextStyles.largeTvBold.copyWith(
                       color: canStart ? AppColors.white : AppColors.darkGray,
+                      fontSize: isMobile ? 16 : 20,
                     ),
                   ),
                 ),
@@ -448,8 +521,9 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   onPressed: () => context.router.pop(),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.lightGray,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                    padding: EdgeInsets.symmetric(
+                      vertical: isMobile ? AppSpacing.md : AppSpacing.lg,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -458,6 +532,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     'رجوع',
                     style: AppTextStyles.largeTvBold.copyWith(
                       color: AppColors.darkGray,
+                      fontSize: isMobile ? 16 : 20,
                     ),
                   ),
                 ),
