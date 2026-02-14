@@ -50,9 +50,11 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
         foregroundColor: AppColors.white,
       ),
       body: BlocListener<GameBloc, GameState>(
+        listenWhen: (previous, current) =>
+            previous is! GameInProgress && current is GameInProgress,
         listener: (context, state) {
           if (state is GameInProgress) {
-            context.router.push(
+            context.router.replace(
               QuestionGridRoute(gameId: state.gameId),
             );
           } else if (state is GameError) {

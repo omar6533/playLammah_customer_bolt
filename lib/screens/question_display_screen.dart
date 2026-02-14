@@ -574,7 +574,7 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
       // We only pop if the state is still GameInProgress
       final gameState = context.read<GameBloc>().state;
       if (gameState is GameInProgress) {
-        // context.router.pop();
+        context.router.pop();
       }
     } catch (e) {
       debugPrint('❌ Error awarding points: $e');

@@ -234,8 +234,8 @@ class _LandingScreenState extends State<LandingScreen> {
           ),
           const SizedBox(height: AppSpacing.sm),
           Wrap(
-            spacing: AppSpacing.xs,
-            runSpacing: AppSpacing.xs,
+            spacing: AppSpacing.tvMd,
+            runSpacing: AppSpacing.tvMd,
             alignment: WrapAlignment.center,
             children: [
               Stack(
@@ -518,7 +518,7 @@ class _LandingScreenState extends State<LandingScreen> {
         ),
         const SizedBox(height: AppSpacing.xxl),
         Text(
-          'إنشاع لعبة',
+          "إنشاء لعبة جديدة",
           style: AppTextStyles.extraLargeTvBold.copyWith(
             color: AppColors.white,
             fontSize: 64,
@@ -578,50 +578,50 @@ class _LandingScreenState extends State<LandingScreen> {
         runSpacing: AppSpacing.lg,
         alignment: WrapAlignment.center,
         children: [
-          _buildModernActionCard(
-            'سين جيم',
-            Icons.play_arrow,
-            const Color(0xFF2E7BF6),
-            () {
-              final totalGames = userState.userProfile.trialsRemaining +
-                  userState.userProfile.availableGames;
-              if (totalGames > 0) {
-                context.router.push(const CategorySelectionRoute());
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('لا توجد محاولات متبقية. الرجاء شراء المزيد'),
-                  ),
-                );
-              }
-            },
-          ),
-          _buildModernActionCard(
-            'تسع\nتسع',
-            Icons.videogame_asset,
-            const Color(0xFFC89620),
-            () {},
-          ),
+          // _buildModernActionCard(
+          //   'سين جيم',
+          //   Icons.play_arrow,
+          //   const Color(0xFF2E7BF6),
+          //   () {
+          //     final totalGames = userState.userProfile.trialsRemaining +
+          //         userState.userProfile.availableGames;
+          //     if (totalGames > 0) {
+          //       context.router.push(const CategorySelectionRoute());
+          //     } else {
+          //       ScaffoldMessenger.of(context).showSnackBar(
+          //         const SnackBar(
+          //           content: Text('لا توجد محاولات متبقية. الرجاء شراء المزيد'),
+          //         ),
+          //       );
+          //     }
+          //   },
+          // ),
+          // _buildModernActionCard(
+          //   'تسع\nتسع',
+          //   Icons.videogame_asset,
+          //   const Color(0xFFC89620),
+          //   () {},
+          // ),
           _buildModernActionCard(
             'أنشئ\nلعبتك',
             Icons.add,
             const Color(0xFFB23838),
             () => context.router.push(const CategorySelectionRoute()),
           ),
-          _buildModernActionCard(
-            'النتائج',
-            Icons.emoji_events,
-            const Color(0xFFE8E8E8),
-            () => context.router.push(const MyGamesRoute()),
-            textColor: const Color(0xFF666666),
-            iconColor: const Color(0xFF999999),
-          ),
-          _buildModernActionCard(
-            'تدريب',
-            Icons.videogame_asset_outlined,
-            const Color(0xFF1A2332),
-            () {},
-          ),
+          // _buildModernActionCard(
+          //   'النتائج',
+          //   Icons.emoji_events,
+          //   const Color(0xFFE8E8E8),
+          //   () => context.router.push(const MyGamesRoute()),
+          //   textColor: const Color(0xFF666666),
+          //   iconColor: const Color(0xFF999999),
+          // ),
+          // _buildModernActionCard(
+          //   'تدريب',
+          //   Icons.videogame_asset_outlined,
+          //   const Color(0xFF1A2332),
+          //   () {},
+          // ),
           _buildModernActionCard(
             'ألعابي',
             Icons.emoji_events,

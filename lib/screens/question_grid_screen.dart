@@ -33,6 +33,7 @@ class QuestionGridScreen extends StatefulWidget {
 
 class _QuestionGridScreenState extends State<QuestionGridScreen> {
   Map<String, SubCategory> _subcategories = {};
+  bool _isNavigating = false;
 
   @override
   void initState() {
@@ -343,61 +344,75 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
         _groupQuestionsBySubcategory(questionState.questions);
     final subcategories = groupedQuestions.keys.toList();
 
-    // Group categories into rows of 3
-    final List<Widget> rows = [];
-    for (int i = 0; i < subcategories.length; i += 3) {
-      final categoriesInRow = <Widget>[];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Group categories into rows of 3
+        final List<Widget> rows = [];
+        for (int i = 0; i < subcategories.length; i += 3) {
+          final categoriesInRow = <Widget>[];
 
-      // Add up to 3 categories per row
-      for (int j = 0; j < 3 && (i + j) < subcategories.length; j++) {
-        final categoryId = subcategories[i + j];
-        final categoryQuestions = groupedQuestions[categoryId]!;
+          // Add up to 3 categories per row
+          for (int j = 0; j < 3 && (i + j) < subcategories.length; j++) {
+            final categoryId = subcategories[i + j];
+            final categoryQuestions = groupedQuestions[categoryId]!;
 
-        categoriesInRow.add(
-          Expanded(
-            child:
-                _buildCategoryBlock(gameState, categoryId, categoryQuestions),
+            categoriesInRow.add(
+              Expanded(
+                child: _buildCategoryBlock(
+                    gameState, categoryId, categoryQuestions),
+              ),
+            );
+
+            // Add spacing between categories (but not after the last one)
+            if (j < 2 && (i + j + 1) < subcategories.length) {
+              categoriesInRow.add(SizedBox(
+                  width: ResponsiveHelper.getResponsiveValue(context,
+                      mobile: 12, tablet: 24, desktop: 32)));
+            }
+          }
+
+          rows.add(
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: categoriesInRow,
+            ),
+          );
+
+          // Add spacing between rows
+          if (i + 3 < subcategories.length) {
+            rows.add(SizedBox(
+                height: ResponsiveHelper.getResponsiveValue(context,
+                    mobile: 16, tablet: 32, desktop: 48)));
+          }
+        }
+
+        return Container(
+          color: const Color(0xFFF5F5F5),
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.vertical,
+                  padding: ResponsiveHelper.getScreenPadding(context),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight -
+                            100), // Subtracting approximate team cards height
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: rows,
+                    ),
+                  ),
+                ),
+              ),
+              SafeArea(
+                top: false,
+                child: _buildTeamCards(gameState),
+              ),
+            ],
           ),
         );
-
-        // Add spacing between categories (but not after the last one)
-        if (j < 2 && (i + j + 1) < subcategories.length) {
-          categoriesInRow.add(SizedBox(width: 12));
-        }
-      }
-
-      rows.add(
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: categoriesInRow,
-        ),
-      );
-
-      // Add spacing between rows
-      if (i + 3 < subcategories.length) {
-        rows.add(SizedBox(height: 16));
-      }
-    }
-
-    return Container(
-      color: const Color(0xFFF5F5F5),
-      child: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.vertical,
-              padding: EdgeInsets.all(16),
-              child: Column(
-                children: rows,
-              ),
-            ),
-          ),
-          SafeArea(
-            top: false,
-            child: _buildTeamCards(gameState),
-          ),
-        ],
-      ),
+      },
     );
   }
 
@@ -424,6 +439,15 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
         ? q600Questions[1]
         : (questions.length > 1 ? questions[1] : questions[0]);
 
+    final spacing = ResponsiveHelper.getResponsiveValue(context,
+        mobile: 8, tablet: 12, desktop: 16);
+    final iconContainerHeight = ResponsiveHelper.getResponsiveValue(context,
+        mobile: 118, tablet: 150, desktop: 180);
+    final titleBarHeight = ResponsiveHelper.getResponsiveValue(context,
+        mobile: 40, tablet: 50, desktop: 60);
+    final iconSize = ResponsiveHelper.getResponsiveValue(context,
+        mobile: 60, tablet: 80, desktop: 100);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -434,14 +458,14 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildQuestionCell(gameState, q200Left),
-              SizedBox(height: 8),
+              SizedBox(height: spacing),
               _buildQuestionCell(gameState, q400Left),
-              SizedBox(height: 8),
+              SizedBox(height: spacing),
               _buildQuestionCell(gameState, q600Left),
             ],
           ),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: spacing),
         // CENTER COLUMN - Image + Title
         Expanded(
           flex: 2,
@@ -450,7 +474,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
             children: [
               // Category Image
               Container(
-                height: 118,
+                height: iconContainerHeight,
                 decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -458,14 +482,14 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
                 child: Center(
                   child: Text(
                     _getIconForSubcategory(subCategoryId),
-                    style: const TextStyle(fontSize: 60),
+                    style: TextStyle(fontSize: iconSize),
                   ),
                 ),
               ),
-              SizedBox(height: 8),
+              SizedBox(height: spacing),
               // Orange Title Bar
               Container(
-                height: 40,
+                height: titleBarHeight,
                 decoration: BoxDecoration(
                   color: const Color(0xFFE8743B),
                   borderRadius: BorderRadius.circular(8),
@@ -475,7 +499,8 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
                     _getNameForSubcategory(subCategoryId),
                     style: AppTextStyles.mediumBold.copyWith(
                       color: AppColors.white,
-                      fontSize: 14,
+                      fontSize: ResponsiveHelper.getResponsiveFontSize(context,
+                          mobile: 14, tablet: 18, desktop: 22),
                       fontWeight: FontWeight.bold,
                     ),
                     textAlign: TextAlign.center,
@@ -487,7 +512,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
             ],
           ),
         ),
-        SizedBox(width: 10),
+        SizedBox(width: spacing),
         // RIGHT COLUMN - Points
         Expanded(
           flex: 1,
@@ -495,9 +520,9 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildQuestionCell(gameState, q200Right),
-              SizedBox(height: 8),
+              SizedBox(height: spacing),
               _buildQuestionCell(gameState, q400Right),
-              SizedBox(height: 8),
+              SizedBox(height: spacing),
               _buildQuestionCell(gameState, q600Right),
             ],
           ),
@@ -525,31 +550,41 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
 
   Widget _buildQuestionCell(GameInProgress gameState, Question question) {
     final isPlayed = gameState.playedQuestions.contains(question.id);
+    final cellHeight = ResponsiveHelper.getResponsiveValue(context,
+        mobile: 45, tablet: 60, desktop: 80);
+    final fontSize = ResponsiveHelper.getResponsiveFontSize(context,
+        mobile: 20, tablet: 26, desktop: 32);
 
     return Container(
-      height: 50,
+      height: cellHeight,
       child: InkWell(
-        onTap: isPlayed
+        onTap: isPlayed || _isNavigating
             ? null
-            : () {
-                context.router.push(
+            : () async {
+                setState(() => _isNavigating = true);
+                await context.router.push(
                   QuestionDisplayRoute(
                     gameId: widget.gameId,
                     questionId: question.id,
                   ),
                 );
+                if (mounted) {
+                  setState(() => _isNavigating = false);
+                }
               },
         child: Container(
           decoration: BoxDecoration(
             color: isPlayed ? const Color(0xFFD3D3D3) : const Color(0xFFD0D0E0),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(
+                ResponsiveHelper.getResponsiveValue(context,
+                    mobile: 12, tablet: 16, desktop: 20)),
           ),
           child: Center(
             child: Text(
               '${question.points}',
               style: AppTextStyles.largeTvBold.copyWith(
                 color: isPlayed ? Colors.grey.shade500 : AppColors.primaryRed,
-                fontSize: 26,
+                fontSize: fontSize,
                 fontWeight: FontWeight.bold,
               ),
             ),
