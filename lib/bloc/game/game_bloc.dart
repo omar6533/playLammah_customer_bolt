@@ -18,6 +18,66 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<CompleteGameEvent>(_onCompleteGame);
     on<ResumeGameEvent>(_onResumeGame);
     on<ReplayGameEvent>(_onReplayGame);
+    on<AwardPointsEvent>(_onAwardPoints);
+  }
+
+  Future<void> _onAwardPoints(
+      AwardPointsEvent event, Emitter<GameState> emit) async {
+    final state = this.state;
+    if (state is! GameInProgress) return;
+
+    try {
+      final gameRecord = state.gameRecord;
+      int newLeftScore = gameRecord.leftTeamScore;
+      int newRightScore = gameRecord.rightTeamScore;
+      String newTurn = gameRecord.currentTurn;
+
+      // 1. Calculate new score and turn
+      if (event.winner == 'left') {
+        newLeftScore += event.points;
+        newTurn = 'right';
+      } else if (event.winner == 'right') {
+        newRightScore += event.points;
+        newTurn = 'left';
+      } else {
+        newTurn = gameRecord.currentTurn == 'left' ? 'right' : 'left';
+      }
+
+      // 2. Perform service updates
+      await _appService.updateGameScore(
+        gameId: event.gameId,
+        leftTeamScore: newLeftScore,
+        rightTeamScore: newRightScore,
+        currentTurn: newTurn,
+      );
+
+      await _appService.addPlayedQuestion(
+        gameId: event.gameId,
+        questionId: event.questionId,
+      );
+
+      // 3. Update local state
+      final updatedQuestions = [...state.playedQuestions, event.questionId];
+      final updatedGameRecord = state.gameRecord.copyWith(
+        leftTeamScore: newLeftScore,
+        rightTeamScore: newRightScore,
+        currentTurn: newTurn,
+        playedQuestions: updatedQuestions,
+      );
+
+      print(
+          '🏆 Atomic Award Success - L: $newLeftScore, R: $newRightScore, Turn: $newTurn');
+
+      emit(GameInProgress(
+        gameId: event.gameId,
+        gameRecord: updatedGameRecord,
+        leftTeam: state.leftTeam.copyWith(score: newLeftScore),
+        rightTeam: state.rightTeam.copyWith(score: newRightScore),
+        playedQuestions: updatedQuestions,
+      ));
+    } catch (e) {
+      emit(GameError(message: e.toString()));
+    }
   }
 
   Future<void> _onCreateGame(
@@ -170,9 +230,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     if (state is! GameInProgress) return;
 
     try {
+      final left = state.leftTeam.score;
+      final right = state.rightTeam.score;
+
+      final computedWinner =
+          left == right ? 'draw' : (left > right ? 'left' : 'right');
+
       await _appService.completeGame(
         gameId: event.gameId,
-        winner: event.winner,
+        winner: computedWinner,
       );
 
       final gameRecord = await _appService.getGame(event.gameId);
@@ -181,9 +247,9 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       emit(GameOver(
         gameId: event.gameId,
         gameRecord: gameRecord,
-        winner: event.winner,
-        leftTeamScore: state.leftTeam.score,
-        rightTeamScore: state.rightTeam.score,
+        winner: computedWinner,
+        leftTeamScore: left,
+        rightTeamScore: right,
       ));
     } catch (e) {
       emit(GameError(message: e.toString()));

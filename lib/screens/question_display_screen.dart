@@ -563,13 +563,19 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
 
       if (!mounted) return;
 
+      // Close loading dialog
       Navigator.of(context).pop();
 
       await Future.delayed(const Duration(milliseconds: 100));
 
       if (!mounted) return;
 
-      context.router.pop();
+      // If game is over, the Grid listener will handle replace with GameOverRoute
+      // We only pop if the state is still GameInProgress
+      final gameState = context.read<GameBloc>().state;
+      if (gameState is GameInProgress) {
+        // context.router.pop();
+      }
     } catch (e) {
       debugPrint('❌ Error awarding points: $e');
 
@@ -590,77 +596,44 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
     final gameState = gameBloc.state;
     if (gameState is! GameInProgress) return;
 
-    final gameRecord = gameState.gameRecord;
-    int newLeftScore = gameRecord.leftTeamScore;
-    int newRightScore = gameRecord.rightTeamScore;
-    String newTurn = gameRecord.currentTurn;
-
-    debugPrint(
-        '🎮 Before Award - Left: ${gameRecord.leftTeamName} ($newLeftScore), Right: ${gameRecord.rightTeamName} ($newRightScore), Turn: $newTurn');
-    debugPrint('🏆 Winner: $winner, Points: $points');
-
-    if (winner == 'left') {
-      newLeftScore += points;
-      newTurn = 'right';
-    } else if (winner == 'right') {
-      newRightScore += points;
-      newTurn = 'left';
-    } else {
-      newTurn = gameRecord.currentTurn == 'left' ? 'right' : 'left';
-    }
-
-    debugPrint(
-        '🎮 After Award - Left: ${gameRecord.leftTeamName} ($newLeftScore), Right: ${gameRecord.rightTeamName} ($newRightScore), Turn: $newTurn');
-
+    // 1. Dispatch atomic update event
     gameBloc.add(
-      UpdateScoreEvent(
-        gameId: widget.gameId,
-        leftTeamScore: newLeftScore,
-        rightTeamScore: newRightScore,
-        currentTurn: newTurn,
-      ),
-    );
-
-    await gameBloc.stream.firstWhere((state) =>
-        state is GameInProgress &&
-        state.gameRecord.leftTeamScore == newLeftScore &&
-        state.gameRecord.rightTeamScore == newRightScore &&
-        state.gameRecord.currentTurn == newTurn);
-
-    debugPrint('✅ State updated, now marking question as played');
-
-    gameBloc.add(
-      AnswerQuestionEvent(
+      AwardPointsEvent(
         gameId: widget.gameId,
         questionId: widget.questionId,
+        winner: winner,
+        points: points,
       ),
     );
 
-    // Wait for the question to be marked as played
-    await gameBloc.stream.firstWhere((state) =>
-        state is GameInProgress &&
-        state.playedQuestions.contains(widget.questionId));
+    // 2. Wait for synchronization (max 5s)
+    try {
+      await gameBloc.stream.firstWhere((state) {
+        if (state is GameError) throw Exception(state.message);
+        return state is GameInProgress &&
+            state.playedQuestions.contains(widget.questionId);
+      }).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('⚠️ Sync warning: $e');
+    }
 
-    // Check if all questions have been answered
+    // 3. Check for game completion
     final questionState = questionBloc.state;
     if (questionState is QuestionLoaded) {
       final updatedGameState = gameBloc.state;
       if (updatedGameState is GameInProgress) {
-        final totalQuestions = questionState.questions.length;
-        final playedQuestions = updatedGameState.playedQuestions.length;
+        if (updatedGameState.playedQuestions.length >=
+            questionState.questions.length) {
+          debugPrint('🏁 Game Complete! Determining winner...');
 
-        debugPrint(
-            '🎯 Game Progress: $playedQuestions / $totalQuestions questions played');
-
-        if (playedQuestions >= totalQuestions) {
-          debugPrint('🏁 All questions answered! Completing game...');
-
-          // Determine winner
           String gameWinner;
-          if (newLeftScore > newRightScore) {
-            gameWinner = gameRecord.leftTeamName;
-          } else if (newRightScore > newLeftScore) {
-            gameWinner = gameRecord.rightTeamName;
+          final lScore = updatedGameState.leftTeam.score;
+          final rScore = updatedGameState.rightTeam.score;
+
+          if (lScore > rScore) {
+            gameWinner = updatedGameState.leftTeam.name;
+          } else if (rScore > lScore) {
+            gameWinner = updatedGameState.rightTeam.name;
           } else {
             gameWinner = 'tie';
           }

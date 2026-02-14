@@ -51,8 +51,9 @@ class GameOverScreen extends StatelessWidget {
 
   Widget _buildWinnerSection(BuildContext context, GameOver state) {
     final isDraw = state.leftTeamScore == state.rightTeamScore;
+
     final winnerColor =
-        state.winner == 'left' ? AppColors.primaryRed : AppColors.primaryYellow;
+        isDraw ? AppColors.darkGray : AppColors.primaryRed; // or green
 
     return Column(
       children: [

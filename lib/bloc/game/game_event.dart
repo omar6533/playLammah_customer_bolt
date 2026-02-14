@@ -52,7 +52,25 @@ class UpdateScoreEvent extends GameEvent {
   });
 
   @override
-  List<Object?> get props => [gameId, leftTeamScore, rightTeamScore, currentTurn];
+  List<Object?> get props =>
+      [gameId, leftTeamScore, rightTeamScore, currentTurn];
+}
+
+class AwardPointsEvent extends GameEvent {
+  final String gameId;
+  final String questionId;
+  final String winner; // 'left', 'right', or 'none'
+  final int points;
+
+  const AwardPointsEvent({
+    required this.gameId,
+    required this.questionId,
+    required this.winner,
+    required this.points,
+  });
+
+  @override
+  List<Object?> get props => [gameId, questionId, winner, points];
 }
 
 class AnswerQuestionEvent extends GameEvent {

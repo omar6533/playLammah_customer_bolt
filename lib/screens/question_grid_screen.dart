@@ -33,7 +33,6 @@ class QuestionGridScreen extends StatefulWidget {
 
 class _QuestionGridScreenState extends State<QuestionGridScreen> {
   Map<String, SubCategory> _subcategories = {};
-  bool _isCompletingGame = false;
 
   @override
   void initState() {
@@ -48,7 +47,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
         context
             .read<QuestionBloc>()
             .add(LoadQuestionsEvent(gameId: widget.gameId));
-        _checkGameCompletion();
       }
     });
   }
@@ -62,48 +60,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
       DeviceOrientation.landscapeLeft,
     ]);
     super.dispose();
-  }
-
-  void _checkGameCompletion() {
-    if (_isCompletingGame) return;
-
-    final gameBloc = context.read<GameBloc>();
-    final questionBloc = context.read<QuestionBloc>();
-
-    final gameState = gameBloc.state;
-    final questionState = questionBloc.state;
-
-    if (gameState is GameInProgress && questionState is QuestionLoaded) {
-      final totalQuestions = questionState.questions.length;
-      final playedQuestions = gameState.playedQuestions.length;
-
-      debugPrint(
-          '🎯 Checking game completion: $playedQuestions / $totalQuestions questions played');
-
-      if (playedQuestions >= totalQuestions) {
-        debugPrint('🏁 All questions answered! Completing game...');
-        _isCompletingGame = true;
-
-        final leftScore = gameState.leftTeam.score;
-        final rightScore = gameState.rightTeam.score;
-
-        String winner;
-        if (leftScore > rightScore) {
-          winner = gameState.leftTeam.name;
-        } else if (rightScore > leftScore) {
-          winner = gameState.rightTeam.name;
-        } else {
-          winner = 'tie';
-        }
-
-        gameBloc.add(
-          CompleteGameEvent(
-            gameId: widget.gameId,
-            winner: winner,
-          ),
-        );
-      }
-    }
   }
 
   Future<void> _loadSubcategories() async {
@@ -131,7 +87,8 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
       child: BlocListener<GameBloc, GameState>(
         listener: (context, state) {
           if (state is GameOver) {
-            context.router.push(GameOverRoute(gameId: widget.gameId));
+            // Use replace to ensure we can't go back to the grid once the game is over
+            context.router.replace(GameOverRoute(gameId: widget.gameId));
           }
         },
         child: Scaffold(
@@ -166,13 +123,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
                   }
 
                   if (questionState is QuestionLoaded) {
-                    // Check if game is complete whenever the UI rebuilds
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      if (mounted) {
-                        _checkGameCompletion();
-                      }
-                    });
-
                     return ResponsiveHelper.isLandscape(context)
                         ? _buildLandscapeLayout(gameState, questionState)
                         : _buildPortraitLayout(gameState, questionState);
