@@ -842,23 +842,49 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
   }
 
   void _showWinnerScreen(GameInProgress gameState) {
-    final leftScore = gameState.leftTeam.score;
-    final rightScore = gameState.rightTeam.score;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('إظهار الفائز', style: AppTextStyles.largeTvBold),
+        content: Text(
+          'هل تريد حقاً إنهاء اللعبة وإظهار الفائز؟',
+          style: AppTextStyles.mediumRegular,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('إلغاء', style: AppTextStyles.mediumBold),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              final leftScore = gameState.leftTeam.score;
+              final rightScore = gameState.rightTeam.score;
 
-    String winner;
-    if (leftScore > rightScore) {
-      winner = gameState.leftTeam.name;
-    } else if (rightScore > leftScore) {
-      winner = gameState.rightTeam.name;
-    } else {
-      winner = 'tie';
-    }
+              String winner;
+              if (leftScore > rightScore) {
+                winner = gameState.leftTeam.name;
+              } else if (rightScore > leftScore) {
+                winner = gameState.rightTeam.name;
+              } else {
+                winner = 'tie';
+              }
 
-    final gameBloc = context.read<GameBloc>();
-    gameBloc.add(
-      CompleteGameEvent(
-        gameId: widget.gameId,
-        winner: winner,
+              final gameBloc = context.read<GameBloc>();
+              gameBloc.add(
+                CompleteGameEvent(
+                  gameId: widget.gameId,
+                  winner: winner,
+                ),
+              );
+            },
+            child: Text(
+              'إظهار',
+              style: AppTextStyles.mediumBold
+                  .copyWith(color: AppColors.primaryRed),
+            ),
+          ),
+        ],
       ),
     );
   }
