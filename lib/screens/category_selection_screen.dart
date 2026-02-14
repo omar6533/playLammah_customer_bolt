@@ -8,8 +8,6 @@ import '../theme/app_spacing.dart';
 import '../bloc/category/category_bloc.dart';
 import '../bloc/category/category_event.dart';
 import '../bloc/category/category_state.dart';
-import '../utils/responsive_helper.dart';
-import '../widgets/primary_button.dart';
 import '../services/app_service.dart';
 
 @RoutePage()
@@ -95,9 +93,12 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
 
   Widget _buildModernLayout(BuildContext context, CategoryLoaded state) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
     final isMobile = screenWidth < 900;
 
-    if (isMobile) {
+    if (isMobile && !isLandscape) {
       return Column(
         children: [
           Expanded(
@@ -114,12 +115,21 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     return Row(
       children: [
         Expanded(
-          flex: 2,
+          flex: isLandscape ? 3 : 2,
           child: _buildCategoriesSection(context, state),
         ),
         Container(
-          width: 400,
-          color: AppColors.white,
+          width: isLandscape ? screenWidth * 0.35 : 400,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(-2, 0),
+              ),
+            ],
+          ),
           child: _buildSelectedCategoriesPanel(context, state),
         ),
       ],
@@ -127,15 +137,18 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   Widget _buildCategoriesSection(BuildContext context, CategoryLoaded state) {
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: EdgeInsets.all(isLandscape ? AppSpacing.md : AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.xl,
-              vertical: AppSpacing.lg,
+            padding: EdgeInsets.symmetric(
+              horizontal: isLandscape ? AppSpacing.md : AppSpacing.xl,
+              vertical: isLandscape ? AppSpacing.sm : AppSpacing.lg,
             ),
             decoration: BoxDecoration(
               color: AppColors.white.withOpacity(0.2),
@@ -144,30 +157,33 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
             child: Row(
               children: [
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: isLandscape ? 36 : 48,
+                  height: isLandscape ? 36 : 48,
                   decoration: const BoxDecoration(
                     color: AppColors.primaryRed,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.add,
+                  child: Icon(
+                    Icons.category_rounded,
                     color: AppColors.white,
-                    size: 28,
+                    size: isLandscape ? 20 : 28,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
-                Text(
-                  'إجدد الفئات',
-                  style: AppTextStyles.extraLargeTvBold.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
+                Expanded(
+                  child: Text(
+                    'اختر الفئات',
+                    style: AppTextStyles.extraLargeTvBold.copyWith(
+                      color: AppColors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: isLandscape ? 18 : 24,
+                    ),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: AppSpacing.xl),
+          SizedBox(height: isLandscape ? AppSpacing.md : AppSpacing.xl),
           ...state.mainCategories.map((category) {
             final isExpanded = _expandedCategories.contains(category.id);
             return _buildCategorySection(context, state, category, isExpanded);
@@ -183,11 +199,23 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     dynamic category,
     bool isExpanded,
   ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      margin:
+          EdgeInsets.only(bottom: isLandscape ? AppSpacing.sm : AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -202,9 +230,14 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
               });
             },
             child: Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding:
+                  EdgeInsets.all(isLandscape ? AppSpacing.md : AppSpacing.lg),
               decoration: BoxDecoration(
-                color: AppColors.primaryRed,
+                gradient: const LinearGradient(
+                  colors: [AppColors.primaryRed, AppColors.secondaryRed],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: isExpanded
                     ? const BorderRadius.vertical(top: Radius.circular(16))
                     : BorderRadius.circular(16),
@@ -217,19 +250,25 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                       style: AppTextStyles.extraLargeTvBold.copyWith(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
+                        fontSize: isLandscape ? 16 : 20,
                       ),
                     ),
                   ),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isExpanded ? Icons.remove : Icons.add,
-                      color: AppColors.white,
+                  AnimatedRotation(
+                    turns: isExpanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: Container(
+                      width: isLandscape ? 32 : 40,
+                      height: isLandscape ? 32 : 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: AppColors.white,
+                        size: isLandscape ? 20 : 24,
+                      ),
                     ),
                   ),
                 ],
@@ -238,7 +277,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           ),
           if (isExpanded)
             Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding:
+                  EdgeInsets.all(isLandscape ? AppSpacing.sm : AppSpacing.lg),
               child: _buildSubcategoryCards(context, state, category.id),
             ),
         ],
@@ -253,6 +293,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   ) {
     final subcategories = _categorySubcategories[categoryId] ?? [];
     final screenWidth = MediaQuery.of(context).size.width;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
 
     if (subcategories.isEmpty) {
       return const Center(
@@ -266,17 +308,27 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     }
 
     int crossAxisCount = 3;
-    double cardWidth = 180;
+    double aspectRatio = 1.0;
 
-    if (screenWidth < 600) {
-      crossAxisCount = 3;
-      cardWidth = (screenWidth - 80) / 3;
-    } else if (screenWidth < 900) {
-      crossAxisCount = 3;
-      cardWidth = (screenWidth - 120) / 3;
+    if (isLandscape) {
+      if (screenWidth < 900) {
+        crossAxisCount = 4;
+        aspectRatio = 1.1;
+      } else {
+        crossAxisCount = 5;
+        aspectRatio = 1.0;
+      }
     } else {
-      crossAxisCount = 4;
-      cardWidth = 200;
+      if (screenWidth < 600) {
+        crossAxisCount = 3;
+        aspectRatio = 1.0;
+      } else if (screenWidth < 900) {
+        crossAxisCount = 3;
+        aspectRatio = 0.95;
+      } else {
+        crossAxisCount = 4;
+        aspectRatio = 0.95;
+      }
     }
 
     return GridView.builder(
@@ -284,9 +336,9 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        crossAxisSpacing: AppSpacing.sm,
-        mainAxisSpacing: AppSpacing.sm,
-        childAspectRatio: 0.85,
+        crossAxisSpacing: AppSpacing.xs,
+        mainAxisSpacing: AppSpacing.xs,
+        childAspectRatio: aspectRatio,
       ),
       itemCount: subcategories.length,
       itemBuilder: (context, index) {
@@ -311,80 +363,141 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     ),
                   );
                 },
-          child: Opacity(
-            opacity: canSelect ? 1.0 : 0.5,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFFE3F2FD),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color:
-                      isSelected ? const Color(0xFF2196F3) : Colors.transparent,
-                  width: 3,
-                ),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primaryRed.withOpacity(0.1)
+                  : const Color(0xFFE3F2FD),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? AppColors.primaryRed : Colors.transparent,
+                width: isSelected ? 4 : 2,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xs,
-                            vertical: 4,
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primaryRed.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [],
+            ),
+            child: Stack(
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Expanded(
+                      flex: 3,
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isLandscape ? 4 : AppSpacing.xs,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primaryRed,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'باقي 6 لعبة',
+                                  style: TextStyle(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isLandscape ? 7 : 9,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    subcategory.icon,
+                                    style: TextStyle(
+                                      fontSize: isLandscape ? 28 : 32,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryRed,
-                            borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: isLandscape ? 4 : 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primaryRed
+                              : AppColors.primaryRed.withOpacity(0.9),
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(10),
                           ),
+                        ),
+                        child: Center(
                           child: Text(
-                            'باقي 6 لعبة',
+                            subcategory.nameAr,
                             style: TextStyle(
                               color: AppColors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: screenWidth < 600 ? 8 : 12,
+                              fontSize: isLandscape ? 9 : 11,
                             ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subcategory.icon,
-                          style:
-                              TextStyle(fontSize: screenWidth < 600 ? 32 : 40),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xs,
-                      vertical:
-                          screenWidth < 600 ? AppSpacing.xs : AppSpacing.sm,
-                    ),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryRed,
-                      borderRadius: BorderRadius.vertical(
-                        bottom: Radius.circular(10),
                       ),
                     ),
-                    child: Text(
-                      subcategory.nameAr,
-                      style: TextStyle(
+                  ],
+                ),
+                if (isSelected)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryRed,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.check,
                         color: AppColors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: screenWidth < 600 ? 11 : 14,
+                        size: isLandscape ? 12 : 16,
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                ],
-              ),
+                if (!canSelect)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         );
@@ -399,95 +512,219 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     final selectedCount = state.selectedSubcategoryIds.length;
     final canStart = selectedCount >= 6;
     final screenWidth = MediaQuery.of(context).size.width;
+    final orientation = MediaQuery.of(context).orientation;
+    final isLandscape = orientation == Orientation.landscape;
     final isMobile = screenWidth < 900;
+    final showPanel = !isMobile || isLandscape;
 
     return Column(
       children: [
         Container(
-          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.lg),
-          child: Text(
-            'الفئات المختارة ($selectedCount/6)',
-            style: AppTextStyles.largeTvBold.copyWith(
-              fontSize: isMobile ? 18 : 24,
+          padding: EdgeInsets.all(isLandscape
+              ? AppSpacing.sm
+              : (isMobile ? AppSpacing.md : AppSpacing.lg)),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryRed.withOpacity(0.1),
+                AppColors.primaryRed.withOpacity(0.05),
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-            textAlign: TextAlign.center,
+          ),
+          child: Column(
+            children: [
+              Text(
+                'الفئات المختارة',
+                style: AppTextStyles.largeTvBold.copyWith(
+                  fontSize: isLandscape ? 16 : (isMobile ? 18 : 24),
+                  color: AppColors.primaryRed,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: selectedCount >= 6
+                      ? AppColors.success
+                      : AppColors.primaryRed,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$selectedCount/6',
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: isLandscape ? 14 : 18,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
-        if (!isMobile)
+        if (showPanel)
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
+              padding:
+                  EdgeInsets.all(isLandscape ? AppSpacing.sm : AppSpacing.lg),
               child: Column(
-                children: state.selectedSubcategoryIds.map((subcategoryId) {
-                  final subcategory = _findSubcategory(state, subcategoryId);
-                  final category =
-                      _findCategoryForSubcategory(state, subcategoryId);
-                  if (subcategory == null || category == null)
-                    return const SizedBox();
-
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: AppSpacing.md),
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryRed,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
+                children: state.selectedSubcategoryIds.isEmpty
+                    ? [
+                        Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xl),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                category.nameAr,
-                                style: AppTextStyles.mediumRegular.copyWith(
-                                  color: AppColors.white.withOpacity(0.9),
-                                  fontSize: 12,
-                                ),
+                              Icon(
+                                Icons.touch_app,
+                                size: isLandscape ? 40 : 60,
+                                color: AppColors.customGray,
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: AppSpacing.md),
                               Text(
-                                subcategory.nameAr,
-                                style: AppTextStyles.mediumBold.copyWith(
-                                  color: AppColors.white,
+                                'اختر الفئات من القائمة',
+                                style: TextStyle(
+                                  color: AppColors.customGray,
+                                  fontSize: isLandscape ? 12 : 16,
                                 ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {
-                            context.read<CategoryBloc>().add(
-                                  ToggleSubcategoryEvent(
-                                      subcategoryId: subcategoryId),
-                                );
-                          },
-                          icon: const Icon(
-                            Icons.close,
-                            color: AppColors.white,
+                      ]
+                    : state.selectedSubcategoryIds.map((subcategoryId) {
+                        final subcategory =
+                            _findSubcategory(state, subcategoryId);
+                        final category =
+                            _findCategoryForSubcategory(state, subcategoryId);
+                        if (subcategory == null || category == null)
+                          return const SizedBox();
+
+                        return Container(
+                          margin: EdgeInsets.only(
+                              bottom:
+                                  isLandscape ? AppSpacing.xs : AppSpacing.sm),
+                          padding: EdgeInsets.all(
+                              isLandscape ? AppSpacing.sm : AppSpacing.md),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [
+                                AppColors.primaryRed,
+                                AppColors.secondaryRed,
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryRed.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  subcategory.icon,
+                                  style: TextStyle(
+                                      fontSize: isLandscape ? 20 : 24),
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      category.nameAr,
+                                      style: TextStyle(
+                                        color: AppColors.white.withOpacity(0.9),
+                                        fontSize: isLandscape ? 10 : 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      subcategory.nameAr,
+                                      style: TextStyle(
+                                        color: AppColors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: isLandscape ? 12 : 14,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  context.read<CategoryBloc>().add(
+                                        ToggleSubcategoryEvent(
+                                            subcategoryId: subcategoryId),
+                                      );
+                                },
+                                icon: Icon(
+                                  Icons.close_rounded,
+                                  color: AppColors.white,
+                                  size: isLandscape ? 18 : 24,
+                                ),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
               ),
             ),
           ),
         Container(
-          padding: EdgeInsets.all(isMobile ? AppSpacing.md : AppSpacing.lg),
+          padding: EdgeInsets.all(isLandscape
+              ? AppSpacing.sm
+              : (isMobile ? AppSpacing.md : AppSpacing.lg)),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
           child: Column(
             children: [
               if (!canStart)
-                Text(
-                  'يجب اختيار 6 فئات على الأقل',
-                  style: AppTextStyles.mediumBold.copyWith(
-                    color: isMobile ? AppColors.white : AppColors.darkGray,
-                    fontSize: isMobile ? 14 : 16,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  textAlign: TextAlign.center,
+                  child: Text(
+                    'يجب اختيار 6 فئات على الأقل',
+                    style: TextStyle(
+                      color: AppColors.warning,
+                      fontSize: isLandscape ? 11 : (isMobile ? 14 : 16),
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-              SizedBox(height: isMobile ? AppSpacing.sm : AppSpacing.md),
+              SizedBox(
+                  height: isLandscape
+                      ? AppSpacing.xs
+                      : (isMobile ? AppSpacing.sm : AppSpacing.md)),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -499,30 +736,51 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                         ? const Color(0xFFF48FB1)
                         : AppColors.lightGray,
                     padding: EdgeInsets.symmetric(
-                      vertical: isMobile ? AppSpacing.md : AppSpacing.lg,
+                      vertical: isLandscape
+                          ? AppSpacing.sm
+                          : (isMobile ? AppSpacing.md : AppSpacing.lg),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: canStart ? 4 : 0,
                   ),
-                  child: Text(
-                    'ابدأ اللعبة',
-                    style: AppTextStyles.largeTvBold.copyWith(
-                      color: canStart ? AppColors.white : AppColors.darkGray,
-                      fontSize: isMobile ? 16 : 20,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'ابدأ اللعبة',
+                        style: AppTextStyles.largeTvBold.copyWith(
+                          color:
+                              canStart ? AppColors.white : AppColors.darkGray,
+                          fontSize: isLandscape ? 14 : (isMobile ? 16 : 20),
+                        ),
+                      ),
+                      if (canStart) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.play_arrow_rounded,
+                          color: AppColors.white,
+                          size: isLandscape ? 20 : 24,
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              SizedBox(height: isLandscape ? AppSpacing.xs : AppSpacing.sm),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: OutlinedButton(
                   onPressed: () => context.router.pop(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.lightGray,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.darkGray,
+                    side:
+                        const BorderSide(color: AppColors.lightGray, width: 2),
                     padding: EdgeInsets.symmetric(
-                      vertical: isMobile ? AppSpacing.md : AppSpacing.lg,
+                      vertical: isLandscape
+                          ? AppSpacing.sm
+                          : (isMobile ? AppSpacing.md : AppSpacing.lg),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -532,7 +790,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                     'رجوع',
                     style: AppTextStyles.largeTvBold.copyWith(
                       color: AppColors.darkGray,
-                      fontSize: isMobile ? 16 : 20,
+                      fontSize: isLandscape ? 14 : (isMobile ? 16 : 20),
                     ),
                   ),
                 ),

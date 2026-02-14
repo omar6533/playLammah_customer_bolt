@@ -84,192 +84,202 @@ class _RegisterScreenState extends State<RegisterScreen> {
             gradient: AppColors.primaryGradient,
           ),
           child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const LammhBrandHeader(
-                        logoSize: 80,
-                        logoColor: AppColors.white,
-                        showTagline: false,
-                        titleFontSize: 24,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        'إنشاء حساب جديد',
-                        style: AppTextStyles.xlargeTvExtraBold.copyWith(
-                          color: AppColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xl),
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(28),
-                        ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      child: Form(
+                        key: _formKey,
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                labelText: 'البريد الإلكتروني',
-                                prefixIcon: Icon(Icons.email),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال البريد الإلكتروني';
-                                }
-                                if (!value.contains('@')) {
-                                  return 'الرجاء إدخال بريد إلكتروني صحيح';
-                                }
-                                return null;
-                              },
+                            const LammhBrandHeader(
+                              logoSize: 80,
+                              logoColor: AppColors.white,
+                              showTagline: false,
+                              titleFontSize: 24,
                             ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextFormField(
-                              controller: _mobileController,
-                              keyboardType: TextInputType.phone,
-                              decoration: const InputDecoration(
-                                labelText: 'رقم الجوال',
-                                prefixIcon: Icon(Icons.phone),
+                            const SizedBox(height: AppSpacing.lg),
+                            Text(
+                              'إنشاء حساب جديد',
+                              style: AppTextStyles.xlargeTvExtraBold.copyWith(
+                                color: AppColors.white,
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال رقم الجوال';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextFormField(
-                              controller: _nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'الاسم',
-                                prefixIcon: Icon(Icons.person),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال الاسم';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'كلمة المرور',
-                                prefixIcon: const Icon(Icons.lock),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال كلمة المرور';
-                                }
-                                if (value.length < 6) {
-                                  return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextFormField(
-                              controller: _confirmPasswordController,
-                              obscureText: _obscureConfirmPassword,
-                              decoration: InputDecoration(
-                                labelText: 'تأكيد كلمة المرور',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscureConfirmPassword
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscureConfirmPassword =
-                                          !_obscureConfirmPassword;
-                                    });
-                                  },
-                                ),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء تأكيد كلمة المرور';
-                                }
-                                if (value != _passwordController.text) {
-                                  return 'كلمة المرور غير متطابقة';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _acceptedTerms,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _acceptedTerms = value ?? false;
-                                    });
-                                  },
-                                  activeColor: AppColors.primaryRed,
-                                ),
-                                Expanded(
-                                  child: Text(
-                                    'أوافق على الشروط والأحكام',
-                                    style: AppTextStyles.body,
-                                  ),
-                                ),
-                              ],
                             ),
                             const SizedBox(height: AppSpacing.xl),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) {
-                                return PrimaryButton(
-                                  label: 'إنشاء حساب',
-                                  onPressed: _handleRegister,
-                                  isLoading: state is AuthLoading,
-                                );
-                              },
+                            Container(
+                              padding: const EdgeInsets.all(AppSpacing.xl),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    decoration: const InputDecoration(
+                                      labelText: 'البريد الإلكتروني',
+                                      prefixIcon: Icon(Icons.email),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال البريد الإلكتروني';
+                                      }
+                                      if (!value.contains('@')) {
+                                        return 'الرجاء إدخال بريد إلكتروني صحيح';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  TextFormField(
+                                    controller: _mobileController,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: const InputDecoration(
+                                      labelText: 'رقم الجوال',
+                                      prefixIcon: Icon(Icons.phone),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال رقم الجوال';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  TextFormField(
+                                    controller: _nameController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'الاسم',
+                                      prefixIcon: Icon(Icons.person),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال الاسم';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    decoration: InputDecoration(
+                                      labelText: 'كلمة المرور',
+                                      prefixIcon: const Icon(Icons.lock),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword =
+                                                !_obscurePassword;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال كلمة المرور';
+                                      }
+                                      if (value.length < 6) {
+                                        return 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  TextFormField(
+                                    controller: _confirmPasswordController,
+                                    obscureText: _obscureConfirmPassword,
+                                    decoration: InputDecoration(
+                                      labelText: 'تأكيد كلمة المرور',
+                                      prefixIcon:
+                                          const Icon(Icons.lock_outline),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscureConfirmPassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscureConfirmPassword =
+                                                !_obscureConfirmPassword;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء تأكيد كلمة المرور';
+                                      }
+                                      if (value != _passwordController.text) {
+                                        return 'كلمة المرور غير متطابقة';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        value: _acceptedTerms,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            _acceptedTerms = value ?? false;
+                                          });
+                                        },
+                                        activeColor: AppColors.primaryRed,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          'أوافق على الشروط والأحكام',
+                                          style: AppTextStyles.body,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: AppSpacing.xl),
+                                  BlocBuilder<AuthBloc, AuthState>(
+                                    builder: (context, state) {
+                                      return PrimaryButton(
+                                        label: 'إنشاء حساب',
+                                        onPressed: _handleRegister,
+                                        isLoading: state is AuthLoading,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
+                            const SizedBox(height: AppSpacing.lg),
+                            TextButton(
+                                onPressed: () {
+                                  context.router.pop();
+                                },
+                                child: Text(
+                                  'لديك حساب بالفعل؟ تسجيل الدخول',
+                                  style: AppTextStyles.baseTv.copyWith(
+                                    color: AppColors.white,
+                                  ),
+                                ))
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
-                      TextButton(
-                        onPressed: () {
-                          context.router.pop();
-                        },
-                        child: Text(
-                          'لديك حساب بالفعل؟ تسجيل الدخول',
-                          style: AppTextStyles.baseTv.copyWith(
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),

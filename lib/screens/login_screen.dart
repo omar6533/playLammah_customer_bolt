@@ -64,106 +64,117 @@ class _LoginScreenState extends State<LoginScreen> {
             gradient: AppColors.primaryGradient,
           ),
           child: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.xl),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const LammhBrandHeader(
-                        logoSize: 100,
-                        logoColor: AppColors.white,
-                        showTagline: false,
-                        titleFontSize: 28,
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(
-                        'تسجيل الدخول',
-                        style: AppTextStyles.xlargeTvExtraBold.copyWith(
-                          color: AppColors.white,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.xxl),
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(28),
-                        ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xl),
+                      child: Form(
+                        key: _formKey,
                         child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            TextFormField(
-                              controller: _emailController,
-                              keyboardType: TextInputType.emailAddress,
-                              decoration: const InputDecoration(
-                                labelText: 'البريد الإلكتروني / رقم الجوال',
-                                prefixIcon: Icon(Icons.email),
-                              ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال البريد الإلكتروني أو رقم الجوال';
-                                }
-                                return null;
-                              },
+                            const LammhBrandHeader(
+                              logoSize: 100,
+                              logoColor: AppColors.white,
+                              showTagline: false,
+                              titleFontSize: 28,
                             ),
-                            const SizedBox(height: AppSpacing.md),
-                            TextFormField(
-                              controller: _passwordController,
-                              obscureText: _obscurePassword,
-                              decoration: InputDecoration(
-                                labelText: 'كلمة المرور',
-                                prefixIcon: const Icon(Icons.lock),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    _obscurePassword
-                                        ? Icons.visibility
-                                        : Icons.visibility_off,
+                            const SizedBox(height: AppSpacing.lg),
+                            Text(
+                              'تسجيل الدخول',
+                              style: AppTextStyles.xlargeTvExtraBold.copyWith(
+                                color: AppColors.white,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xxl),
+                            Container(
+                              padding: const EdgeInsets.all(AppSpacing.xl),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(28),
+                              ),
+                              child: Column(
+                                children: [
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    decoration: const InputDecoration(
+                                      labelText:
+                                          'البريد الإلكتروني / رقم الجوال',
+                                      prefixIcon: Icon(Icons.email),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال البريد الإلكتروني أو رقم الجوال';
+                                      }
+                                      return null;
+                                    },
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _obscurePassword = !_obscurePassword;
-                                    });
-                                  },
+                                  const SizedBox(height: AppSpacing.md),
+                                  TextFormField(
+                                    controller: _passwordController,
+                                    obscureText: _obscurePassword,
+                                    decoration: InputDecoration(
+                                      labelText: 'كلمة المرور',
+                                      prefixIcon: const Icon(Icons.lock),
+                                      suffixIcon: IconButton(
+                                        icon: Icon(
+                                          _obscurePassword
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                        ),
+                                        onPressed: () {
+                                          setState(() {
+                                            _obscurePassword =
+                                                !_obscurePassword;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'الرجاء إدخال كلمة المرور';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                  const SizedBox(height: AppSpacing.xl),
+                                  BlocBuilder<AuthBloc, AuthState>(
+                                    builder: (context, state) {
+                                      return PrimaryButton(
+                                        label: 'تسجيل الدخول',
+                                        onPressed: _handleLogin,
+                                        isLoading: state is AuthLoading,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                            TextButton(
+                              onPressed: () {
+                                context.router.push(const RegisterRoute());
+                              },
+                              child: Text(
+                                'ليس لديك حساب؟ إنشاء حساب جديد',
+                                style: AppTextStyles.baseTv.copyWith(
+                                  color: AppColors.white,
                                 ),
                               ),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'الرجاء إدخال كلمة المرور';
-                                }
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: AppSpacing.xl),
-                            BlocBuilder<AuthBloc, AuthState>(
-                              builder: (context, state) {
-                                return PrimaryButton(
-                                  label: 'تسجيل الدخول',
-                                  onPressed: _handleLogin,
-                                  isLoading: state is AuthLoading,
-                                );
-                              },
-                            ),
+                            )
                           ],
                         ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
-                      TextButton(
-                        onPressed: () {
-                          context.router.push(const RegisterRoute());
-                        },
-                        child: Text(
-                          'ليس لديك حساب؟ إنشاء حساب جديد',
-                          style: AppTextStyles.baseTv.copyWith(
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),

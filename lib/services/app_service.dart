@@ -12,7 +12,7 @@ class AppService {
   factory AppService() => _instance;
   AppService._internal();
 
-  final FirebaseService _firebaseService = FirebaseService();
+  late final FirebaseService _firebaseService = FirebaseService();
   final MockFirebaseService _mockService = MockFirebaseService();
 
   bool get isMockMode => AppConfig.useMockData;
@@ -297,6 +297,50 @@ class AppService {
       await _mockService.addGamesToUser(userId, gamesToAdd);
     } else {
       await _firebaseService.addGamesToUser(userId, gamesToAdd);
+    }
+  }
+
+  Future<String> recordPayment({
+    required String userId,
+    required String userEmail,
+    required String userName,
+    required String userMobile,
+    required String packageId,
+    required String packageTitle,
+    required int gamesCount,
+    required int amountInHalalas,
+    required String invoiceId,
+    String paymentStatus = 'completed',
+    Map<String, dynamic>? metadata,
+  }) async {
+    if (isMockMode) {
+      return await _mockService.recordPayment(
+        userId: userId,
+        userEmail: userEmail,
+        userName: userName,
+        userMobile: userMobile,
+        packageId: packageId,
+        packageTitle: packageTitle,
+        gamesCount: gamesCount,
+        amountInHalalas: amountInHalalas,
+        invoiceId: invoiceId,
+        paymentStatus: paymentStatus,
+        metadata: metadata,
+      );
+    } else {
+      return await _firebaseService.recordPayment(
+        userId: userId,
+        userEmail: userEmail,
+        userName: userName,
+        userMobile: userMobile,
+        packageId: packageId,
+        packageTitle: packageTitle,
+        gamesCount: gamesCount,
+        amountInHalalas: amountInHalalas,
+        invoiceId: invoiceId,
+        paymentStatus: paymentStatus,
+        metadata: metadata,
+      );
     }
   }
 }

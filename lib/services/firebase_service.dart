@@ -5,6 +5,7 @@ import '../models/sub_category.dart';
 import '../models/question.dart';
 import '../models/game_record.dart';
 import '../models/user_profile.dart';
+import '../models/payment_record.dart';
 
 class FirebaseService {
   final FirebaseAuth _auth;
@@ -123,6 +124,100 @@ class FirebaseService {
         });
       }
     }
+  }
+
+  // Payment Methods
+  Future<String> recordPayment({
+    required String userId,
+    required String userEmail,
+    required String userName,
+    required String userMobile,
+    required String packageId,
+    required String packageTitle,
+    required int gamesCount,
+    required int amountInHalalas,
+    required String invoiceId,
+    String paymentStatus = 'completed',
+    Map<String, dynamic>? metadata,
+  }) async {
+    final docRef = _firestore.collection('payment_transactions').doc();
+
+    await docRef.set({
+      'id': docRef.id,
+      'user_id': userId,
+      'user_email': userEmail,
+      'user_name': userName,
+      'user_mobile': userMobile,
+      'package_id': packageId,
+      'package_title': packageTitle,
+      'games_count': gamesCount,
+      'amount_in_halalas': amountInHalalas,
+      'currency': 'SAR',
+      'invoice_id': invoiceId,
+      'payment_status': paymentStatus,
+      'created_at': FieldValue.serverTimestamp(),
+      'metadata': metadata,
+    });
+
+    return docRef.id;
+  }
+
+  Future<List<PaymentRecord>> getPaymentsByUser(String userId) async {
+    final snapshot = await _firestore
+        .collection('payment_transactions')
+        .where('user_id', isEqualTo: userId)
+        .orderBy('created_at', descending: true)
+        .get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return PaymentRecord.fromJson({
+        ...data,
+        'created_at':
+            (data['created_at'] as Timestamp?)?.toDate().toIso8601String() ??
+                DateTime.now().toIso8601String(),
+      });
+    }).toList();
+  }
+
+  Future<List<PaymentRecord>> getAllPayments({int? limit}) async {
+    var query = _firestore
+        .collection('payment_transactions')
+        .orderBy('created_at', descending: true);
+
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    final snapshot = await query.get();
+
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      return PaymentRecord.fromJson({
+        ...data,
+        'created_at':
+            (data['created_at'] as Timestamp?)?.toDate().toIso8601String() ??
+                DateTime.now().toIso8601String(),
+      });
+    }).toList();
+  }
+
+  Future<PaymentRecord?> getPaymentByInvoiceId(String invoiceId) async {
+    final snapshot = await _firestore
+        .collection('payment_transactions')
+        .where('invoice_id', isEqualTo: invoiceId)
+        .limit(1)
+        .get();
+
+    if (snapshot.docs.isEmpty) return null;
+
+    final data = snapshot.docs.first.data();
+    return PaymentRecord.fromJson({
+      ...data,
+      'created_at':
+          (data['created_at'] as Timestamp?)?.toDate().toIso8601String() ??
+              DateTime.now().toIso8601String(),
+    });
   }
 
   // Category Methods

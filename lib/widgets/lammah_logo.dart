@@ -34,32 +34,51 @@ class _LammhLogoPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
 
     final w = size.width;
-    final h = size.height;
+    final s = w / 400; // scaling factor
 
-    final path1 = Path();
-    path1.moveTo(w * 0.25, h * 0.15);
-    path1.cubicTo(w * 0.15, h * 0.15, w * 0.15, h * 0.25, w * 0.15, h * 0.35);
-    path1.cubicTo(w * 0.15, h * 0.45, w * 0.25, h * 0.45, w * 0.35, h * 0.45);
+    // Top Left Bracket
+    final path1 = Path()
+      ..moveTo(88 * s, 72 * s)
+      ..cubicTo(60 * s, 48 * s, 48 * s, 60 * s, 48 * s, 100 * s)
+      ..cubicTo(48 * s, 140 * s, 72 * s, 168 * s, 112 * s, 168 * s)
+      ..cubicTo(140 * s, 168 * s, 160 * s, 152 * s, 168 * s, 128 * s);
 
-    final path2 = Path();
-    path2.moveTo(w * 0.75, h * 0.15);
-    path2.cubicTo(w * 0.85, h * 0.15, w * 0.85, h * 0.25, w * 0.85, h * 0.35);
-    path2.cubicTo(w * 0.85, h * 0.45, w * 0.75, h * 0.45, w * 0.65, h * 0.45);
+    // Top Right Bracket
+    final path2 = Path()
+      ..moveTo(312 * s, 72 * s)
+      ..cubicTo(340 * s, 48 * s, 352 * s, 60 * s, 352 * s, 100 * s)
+      ..cubicTo(352 * s, 140 * s, 328 * s, 168 * s, 288 * s, 168 * s)
+      ..cubicTo(260 * s, 168 * s, 240 * s, 152 * s, 232 * s, 128 * s);
 
-    final path3 = Path();
-    path3.moveTo(w * 0.25, h * 0.55);
-    path3.cubicTo(w * 0.15, h * 0.55, w * 0.15, h * 0.65, w * 0.15, h * 0.75);
-    path3.cubicTo(w * 0.15, h * 0.85, w * 0.25, h * 0.85, w * 0.35, h * 0.85);
+    // Bottom Left Bracket
+    final path3 = Path()
+      ..moveTo(88 * s, 232 * s)
+      ..cubicTo(60 * s, 208 * s, 48 * s, 220 * s, 48 * s, 260 * s)
+      ..cubicTo(48 * s, 300 * s, 72 * s, 328 * s, 112 * s, 328 * s)
+      ..cubicTo(140 * s, 328 * s, 160 * s, 312 * s, 168 * s, 288 * s);
 
-    final path4 = Path();
-    path4.moveTo(w * 0.75, h * 0.55);
-    path4.cubicTo(w * 0.85, h * 0.55, w * 0.85, h * 0.65, w * 0.85, h * 0.75);
-    path4.cubicTo(w * 0.85, h * 0.85, w * 0.75, h * 0.85, w * 0.65, h * 0.85);
+    // Bottom Right Bracket
+    final path4 = Path()
+      ..moveTo(312 * s, 232 * s)
+      ..cubicTo(340 * s, 208 * s, 352 * s, 220 * s, 352 * s, 260 * s)
+      ..cubicTo(352 * s, 300 * s, 328 * s, 328 * s, 288 * s, 328 * s)
+      ..cubicTo(260 * s, 328 * s, 240 * s, 312 * s, 232 * s, 288 * s);
 
     canvas.drawPath(path1, paint);
     canvas.drawPath(path2, paint);
     canvas.drawPath(path3, paint);
     canvas.drawPath(path4, paint);
+
+    // Decorative Dots
+    final fillPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final dotRadius = 16 * s;
+    canvas.drawCircle(Offset(128 * s, 112 * s), dotRadius, fillPaint);
+    canvas.drawCircle(Offset(272 * s, 112 * s), dotRadius, fillPaint);
+    canvas.drawCircle(Offset(128 * s, 272 * s), dotRadius, fillPaint);
+    canvas.drawCircle(Offset(272 * s, 272 * s), dotRadius, fillPaint);
   }
 
   @override

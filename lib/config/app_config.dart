@@ -1,5 +1,5 @@
 class AppConfig {
-  static const bool useMockData = false;
+  static const bool useMockData = true;
 
   static const String appName = 'لمة | Lammh';
   static const String appNameAr = 'لمة';

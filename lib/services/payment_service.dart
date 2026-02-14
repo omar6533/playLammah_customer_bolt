@@ -15,31 +15,46 @@ class PaymentService {
     required Map<String, dynamic> metadata,
   }) async {
     try {
+      print('💰 Creating invoice with amount: $amount');
+      print('💰 Description: $description');
+      print('💰 Callback URL: $callbackUrl');
+      print('💰 Success URL: $successUrl');
+
+      final requestBody = {
+        'amount': amount,
+        'currency': 'SAR',
+        'description': description,
+        'callback_url': callbackUrl,
+        'success_url': successUrl,
+        'metadata': metadata,
+      };
+
+      print('💰 Request body: ${json.encode(requestBody)}');
+
       final response = await http.post(
         Uri.parse('$baseUrl/invoices'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Basic ${base64Encode(utf8.encode('$apiKey:'))}',
         },
-        body: json.encode({
-          'amount': amount,
-          'currency': 'SAR',
-          'description': description,
-          'callback_url': callbackUrl,
-          'success_url': successUrl,
-          'metadata': metadata,
-        }),
+        body: json.encode(requestBody),
       );
+
+      print('💰 Response status: ${response.statusCode}');
+      print('💰 Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
+        print('💰 Invoice created successfully');
         return PaymentInvoiceResponse.fromJson(data);
       } else {
+        print('💰 Failed to create invoice: ${response.statusCode}');
         throw PaymentException(
           'Failed to create invoice: ${response.statusCode} - ${response.body}',
         );
       }
     } catch (e) {
+      print('💰 Exception creating invoice: $e');
       throw PaymentException('Error creating invoice: $e');
     }
   }

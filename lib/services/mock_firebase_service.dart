@@ -3,12 +3,14 @@ import '../models/sub_category.dart';
 import '../models/question.dart';
 import '../models/user_profile.dart';
 import '../models/game_record.dart';
+import '../models/payment_record.dart';
 import 'mock_data.dart';
 
 class MockFirebaseService {
   String? _currentUserId;
   final Map<String, UserProfile> _users = {};
   final Map<String, List<GameRecord>> _userGames = {};
+  final List<PaymentRecord> _payments = [];
 
   Future<void> _simulateDelay() async {
     await Future.delayed(const Duration(milliseconds: 500));
@@ -31,6 +33,7 @@ class MockFirebaseService {
       name: name,
       mobile: mobile,
       trialsRemaining: 1,
+      availableGames: 0,
       createdAt: DateTime.now().toIso8601String(),
     );
 
@@ -137,14 +140,14 @@ class MockFirebaseService {
 
     if (_users.containsKey(userId)) {
       final current = _users[userId]!;
+      // First use free trials, then purchased games
       if (current.trialsRemaining > 0) {
-        _users[userId] = UserProfile(
-          id: current.id,
-          email: current.email,
-          name: current.name,
-          mobile: current.mobile,
+        _users[userId] = current.copyWith(
           trialsRemaining: current.trialsRemaining - 1,
-          createdAt: current.createdAt,
+        );
+      } else if (current.availableGames > 0) {
+        _users[userId] = current.copyWith(
+          availableGames: current.availableGames - 1,
         );
       }
     }
@@ -360,8 +363,45 @@ class MockFirebaseService {
     if (_users.containsKey(userId)) {
       final user = _users[userId]!;
       _users[userId] = user.copyWith(
-        trialsRemaining: user.trialsRemaining + gamesToAdd,
+        availableGames: user.availableGames + gamesToAdd,
       );
     }
+  }
+
+  Future<String> recordPayment({
+    required String userId,
+    required String userEmail,
+    required String userName,
+    required String userMobile,
+    required String packageId,
+    required String packageTitle,
+    required int gamesCount,
+    required int amountInHalalas,
+    required String invoiceId,
+    String paymentStatus = 'completed',
+    Map<String, dynamic>? metadata,
+  }) async {
+    await _simulateDelay();
+
+    final paymentId = 'mock_payment_${DateTime.now().millisecondsSinceEpoch}';
+    final payment = PaymentRecord(
+      id: paymentId,
+      userId: userId,
+      userEmail: userEmail,
+      userName: userName,
+      userMobile: userMobile,
+      packageId: packageId,
+      packageTitle: packageTitle,
+      gamesCount: gamesCount,
+      amountInHalalas: amountInHalalas,
+      currency: 'SAR',
+      invoiceId: invoiceId,
+      paymentStatus: paymentStatus,
+      createdAt: DateTime.now().toIso8601String(),
+      metadata: metadata,
+    );
+
+    _payments.add(payment);
+    return paymentId;
   }
 }

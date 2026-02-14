@@ -30,6 +30,7 @@ class QuestionDisplayScreen extends StatefulWidget {
 
 class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
   bool _showAnswer = false;
+  bool _isSubmitting = false;
 
   @override
   Widget build(BuildContext context) {
@@ -86,38 +87,169 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
     return Column(
       children: [
         Expanded(
-          child: Row(
+          child: !_showAnswer
+              ? _buildFullScreenQuestion(context, question)
+              : _buildFullScreenAnswer(context, question),
+        ),
+        Container(
+          padding: EdgeInsets.all(AppSpacing.md),
+          color: AppColors.white,
+          child: SafeArea(
+            child: _buildActionButtons(context, question),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFullScreenQuestion(BuildContext context, question) {
+    return Container(
+      color: AppColors.primaryYellow,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(AppSpacing.xxl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Expanded(
-                child: Center(
-                  child: _buildQuestionCard(context, question),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryRed,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '${question.points} نقطة',
+                  style: AppTextStyles.extraLargeTvBold.copyWith(
+                    color: AppColors.white,
+                    fontSize: 32,
+                  ),
                 ),
               ),
-              Expanded(
-                child: Center(
-                  child: _buildAnswerSection(context, question),
+              SizedBox(height: AppSpacing.xxl),
+              if (question.mediaUrl != null &&
+                  question.mediaUrl!.isNotEmpty) ...[
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.35,
+                    maxWidth: MediaQuery.of(context).size.width * 0.6,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      question.mediaUrl!,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppColors.white,
+                          child: Icon(Icons.broken_image,
+                              size: 64, color: Colors.grey),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: AppSpacing.lg),
+              ],
+              Text(
+                question.questionTextAr,
+                style: AppTextStyles.extraLargeTvBold.copyWith(
+                  color: AppColors.darkGray,
+                  fontSize: 42,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullScreenAnswer(BuildContext context, question) {
+    return Container(
+      color: AppColors.primaryRed,
+      child: Center(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(AppSpacing.xxl),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'الإجابة',
+                style: AppTextStyles.extraLargeTvBold.copyWith(
+                  color: AppColors.white,
+                  fontSize: 36,
+                ),
+              ),
+              SizedBox(height: AppSpacing.lg),
+              if (question.mediaUrl != null &&
+                  question.mediaUrl!.isNotEmpty) ...[
+                Container(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.35,
+                    maxWidth: MediaQuery.of(context).size.width * 0.6,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.network(
+                      question.mediaUrl!,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: AppColors.white,
+                          child: Icon(Icons.broken_image,
+                              size: 64, color: Colors.grey),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(height: AppSpacing.lg),
+              ],
+              Container(
+                padding: EdgeInsets.all(AppSpacing.xl),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  question.answerAr,
+                  style: AppTextStyles.extraLargeTvBold.copyWith(
+                    color: AppColors.white,
+                    fontSize: 46,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ),
             ],
           ),
         ),
-        BlocBuilder<QuestionBloc, QuestionState>(
-          builder: (context, state) {
-            if (state is! QuestionLoaded) return const SizedBox();
-            final question = state.questions.firstWhere(
-              (q) => q.id == widget.questionId,
-              orElse: () => state.questions.first,
-            );
-            return Container(
-              padding: EdgeInsets.all(AppSpacing.md),
-              color: AppColors.white,
-              child: SafeArea(
-                child: _buildActionButtons(context, question),
-              ),
-            );
-          },
-        ),
-      ],
+      ),
     );
   }
 
@@ -297,11 +429,13 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
     if (!_showAnswer) {
       return PrimaryButton(
         text: 'إظهار الإجابة',
-        onPressed: () {
-          setState(() {
-            _showAnswer = true;
-          });
-        },
+        onPressed: _isSubmitting
+            ? null
+            : () {
+                setState(() {
+                  _showAnswer = true;
+                });
+              },
         icon: Icons.visibility,
         backgroundColor: AppColors.primaryYellow,
       );
@@ -309,7 +443,9 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
 
     return PrimaryButton(
       text: 'أي فريق ؟',
-      onPressed: () => _showTeamSelectionDialog(context, question.points),
+      onPressed: _isSubmitting
+          ? null
+          : () => _showTeamSelectionDialog(context, question.points),
       icon: Icons.emoji_events,
       backgroundColor: AppColors.darkGray,
     );
@@ -353,15 +489,8 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
                   Expanded(
                     child: PrimaryButton(
                       text: leftTeamName,
-                      onPressed: () async {
-                        final router = context.router;
-                        final navigator = Navigator.of(dialogContext);
-                        await _awardPoints(context, 'left', points);
-                        navigator.pop();
-                        if (context.mounted) {
-                          router.pop();
-                        }
-                      },
+                      onPressed: () =>
+                          _handleTeamSelection(dialogContext, 'left', points),
                       backgroundColor: AppColors.primaryRed,
                     ),
                   ),
@@ -369,15 +498,8 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
                   Expanded(
                     child: PrimaryButton(
                       text: rightTeamName,
-                      onPressed: () async {
-                        final router = context.router;
-                        final navigator = Navigator.of(dialogContext);
-                        await _awardPoints(context, 'right', points);
-                        navigator.pop();
-                        if (context.mounted) {
-                          router.pop();
-                        }
-                      },
+                      onPressed: () =>
+                          _handleTeamSelection(dialogContext, 'right', points),
                       backgroundColor: AppColors.primaryRed,
                     ),
                   ),
@@ -386,15 +508,8 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
               SizedBox(height: AppSpacing.md),
               PrimaryButton(
                 text: 'ولا أحد',
-                onPressed: () async {
-                  final router = context.router;
-                  final navigator = Navigator.of(dialogContext);
-                  await _awardPoints(context, 'none', points);
-                  navigator.pop();
-                  if (context.mounted) {
-                    router.pop();
-                  }
-                },
+                onPressed: () =>
+                    _handleTeamSelection(dialogContext, 'none', points),
                 backgroundColor: Colors.grey,
               ),
               SizedBox(height: AppSpacing.md),
@@ -414,6 +529,58 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
         ),
       ),
     );
+  }
+
+  void _handleTeamSelection(
+      BuildContext dialogContext, String winner, int points) {
+    if (_isSubmitting) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    Navigator.of(dialogContext).pop();
+
+    _showLoadingAndAwardPoints(winner, points);
+  }
+
+  Future<void> _showLoadingAndAwardPoints(String winner, int points) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) => WillPopScope(
+        onWillPop: () async => false,
+        child: const Center(
+          child: CircularProgressIndicator(
+            color: AppColors.primaryRed,
+          ),
+        ),
+      ),
+    );
+
+    try {
+      await _awardPoints(context, winner, points);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      if (!mounted) return;
+
+      context.router.pop();
+    } catch (e) {
+      debugPrint('❌ Error awarding points: $e');
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
   }
 
   Future<void> _awardPoints(

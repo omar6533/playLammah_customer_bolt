@@ -1,0 +1,29 @@
+<svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with rounded corners -->
+  <rect width="400" height="400" rx="80" fill="#D64453"/>
+
+  <!-- Logo design based on Arabic calligraphy "لمة" -->
+  <!-- 2x2 grid pattern with curved bracket-like shapes -->
+
+  <!-- Top Left Bracket -->
+  <path d="M88 72 C60 48 48 60 48 100 C48 140 72 168 112 168 C140 168 160 152 168 128"
+        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Top Right Bracket -->
+  <path d="M312 72 C340 48 352 60 352 100 C352 140 328 168 288 168 C260 168 240 152 232 128"
+        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Bottom Left Bracket -->
+  <path d="M88 232 C60 208 48 220 48 260 C48 300 72 328 112 328 C140 328 160 312 168 288"
+        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Bottom Right Bracket -->
+  <path d="M312 232 C340 208 352 220 352 260 C352 300 328 328 288 328 C260 328 240 312 232 288"
+        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+  <!-- Decorative Dots -->
+  <circle cx="128" cy="112" r="16" fill="white"/>
+  <circle cx="272" cy="112" r="16" fill="white"/>
+  <circle cx="128" cy="272" r="16" fill="white"/>
+  <circle cx="272" cy="272" r="16" fill="white"/>
+</svg>

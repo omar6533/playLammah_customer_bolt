@@ -311,6 +311,29 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
             await appService.addGamesToUser(userId, gamesCount);
             print('✅ Games added successfully');
 
+            // Record payment transaction
+            print('📝 Recording payment transaction...');
+            try {
+              await appService.recordPayment(
+                userId: userId,
+                userEmail: invoice.metadata['user_email'] as String? ?? '',
+                userName: invoice.metadata['user_name'] as String? ?? '',
+                userMobile: invoice.metadata['user_mobile'] as String? ?? '',
+                packageId: invoice.metadata['package_id'] as String? ?? '',
+                packageTitle:
+                    invoice.metadata['package_title'] as String? ?? '',
+                gamesCount: gamesCount,
+                amountInHalalas: invoice.amount,
+                invoiceId: extractedInvoiceId,
+                paymentStatus: 'completed',
+                metadata: invoice.metadata,
+              );
+              print('✅ Payment transaction recorded');
+            } catch (e) {
+              print('⚠️ Failed to record payment: $e');
+              // Continue anyway, the important part (adding games) succeeded
+            }
+
             print('🔄 Reloading user profile...');
             userBloc.add(LoadUserEvent(userId: userId));
 
@@ -382,7 +405,7 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
               const SizedBox(height: 24),
               Text(
                 'جاري فتح صفحة الدفع...',
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyBold,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
