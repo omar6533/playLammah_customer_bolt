@@ -9,6 +9,7 @@ import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_state.dart';
 import '../utils/responsive_helper.dart';
 import '../widgets/primary_button.dart';
+import '../utils/orientation_manager.dart';
 
 @RoutePage()
 class GameOverScreen extends StatelessWidget {
@@ -18,32 +19,34 @@ class GameOverScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenPadding = ResponsiveHelper.getScreenPadding(context);
 
-    return Scaffold(
-      backgroundColor: AppColors.primaryYellow,
-      body: SafeArea(
-        child: BlocBuilder<GameBloc, GameState>(
-          builder: (context, state) {
-            if (state is! GameOver) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppColors.primaryRed),
-              );
-            }
+    return GameScreenWrapper(
+      child: Scaffold(
+        backgroundColor: AppColors.primaryYellow,
+        body: SafeArea(
+          child: BlocBuilder<GameBloc, GameState>(
+            builder: (context, state) {
+              if (state is! GameOver) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primaryRed),
+                );
+              }
 
-            return SingleChildScrollView(
-              padding: screenPadding,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(height: AppSpacing.xxl),
-                  _buildWinnerSection(context, state),
-                  SizedBox(height: AppSpacing.xxl),
-                  _buildScoreboard(context, state),
-                  SizedBox(height: AppSpacing.xxl),
-                  _buildActionButtons(context, state),
-                ],
-              ),
-            );
-          },
+              return SingleChildScrollView(
+                padding: screenPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(height: AppSpacing.xxl),
+                    _buildWinnerSection(context, state),
+                    SizedBox(height: AppSpacing.xxl),
+                    _buildScoreboard(context, state),
+                    SizedBox(height: AppSpacing.xxl),
+                    _buildActionButtons(context, state),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

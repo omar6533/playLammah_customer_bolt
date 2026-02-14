@@ -38,10 +38,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
   @override
   void initState() {
     super.initState();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
     _loadSubcategories();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -54,12 +50,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
 
   @override
   void dispose() {
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-      DeviceOrientation.landscapeRight,
-      DeviceOrientation.landscapeLeft,
-    ]);
     super.dispose();
   }
 
@@ -143,10 +133,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     return AppBar(
       backgroundColor: AppColors.primaryRed,
       foregroundColor: AppColors.white,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back),
-        onPressed: () => context.router.pop(),
-      ),
+      automaticallyImplyLeading: false,
       title: BlocBuilder<GameBloc, GameState>(
         builder: (context, state) {
           if (state is GameInProgress) {

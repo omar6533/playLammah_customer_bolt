@@ -113,7 +113,7 @@ class _GameScreenWrapperState extends State<GameScreenWrapper> {
   void initState() {
     super.initState();
     if (widget.preferLandscape) {
-      OrientationManager.unlockAll();
+      OrientationManager.lockLandscape();
     }
   }
 
