@@ -15,7 +15,8 @@ class AppConfig {
 
   static const String moyasarApiKey = String.fromEnvironment(
     'MOYASAR_API_KEY',
-    defaultValue: 'sk_test_robGjy5X6JrL3Wn8sbwneY9Mrb2xZtu6bARVZSBS',
+    defaultValue: 'sk_live_iHvvDN7wWJDSWMWK22ijfCPyNRcy1E7jgzYpDSVM',
+    //prod sk_live_iHvvDN7wWJDSWMWK22ijfCPyNRcy1E7jgzYpDSVM
   );
 
   static const String paymentCallbackUrl =
