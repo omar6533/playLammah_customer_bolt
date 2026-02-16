@@ -11,6 +11,7 @@ import '../bloc/auth/auth_state.dart';
 import '../bloc/user/user_bloc.dart';
 import '../bloc/user/user_state.dart';
 import '../routes/app_router.dart';
+import 'custom_error_dialog.dart';
 
 class GamePackage {
   final String id;
@@ -195,7 +196,8 @@ class PurchaseDialog {
                                     print(
                                         '🛒 Package selected: ${package.title}');
                                     print('🛒 Calling _handlePackagePurchase');
-                                    await _handlePackagePurchase(
+                                    final success =
+                                        await _handlePackagePurchase(
                                       context: context,
                                       dialogContext: dialogContext,
                                       package: package,
@@ -207,8 +209,11 @@ class PurchaseDialog {
                                       callbackUrl: callbackUrl,
                                       successUrl: successUrl,
                                     );
-                                    print('🛒 Purchase handling completed');
-                                    onPackageSelected?.call(package);
+                                    print(
+                                        '🛒 Purchase handling completed. Success: $success');
+                                    if (success && context.mounted) {
+                                      onPackageSelected?.call(package);
+                                    }
                                   },
                                 ),
                               )),
@@ -225,7 +230,7 @@ class PurchaseDialog {
     );
   }
 
-  static Future<void> _handlePackagePurchase({
+  static Future<bool> _handlePackagePurchase({
     required BuildContext context,
     required BuildContext dialogContext,
     required GamePackage package,
@@ -239,62 +244,52 @@ class PurchaseDialog {
   }) async {
     print('💳 _handlePackagePurchase started');
 
-    // Close purchase dialog first
-    print('💳 Closing purchase dialog');
-    Navigator.of(dialogContext).pop();
-
     if (moyasarApiKey == null) {
       print('💳 API key is null');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('مفتاح API غير متوفر')),
+      if (dialogContext.mounted) {
+        CustomErrorDialog.show(
+          context: dialogContext,
+          title: 'خطأ في الدفع',
+          message: 'مفتاح API غير متوفر',
         );
       }
-      return;
+      return false;
     }
 
     print('💳 API key available: ${moyasarApiKey.substring(0, 10)}...');
 
-    print('💳 Auth state: ${authState.runtimeType}');
-    print('💳 User state: ${userState.runtimeType}');
-
     if (authState is! Authenticated || userState is! UserLoaded) {
       print('💳 User not authenticated or profile not loaded');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('خطأ في بيانات المستخدم')),
+      if (dialogContext.mounted) {
+        CustomErrorDialog.show(
+          context: dialogContext,
+          title: 'خطأ في البيانات',
+          message: 'خطأ في بيانات المستخدم',
         );
       }
-      return;
+      return false;
     }
 
     final userId = authState.userId;
     final userProfile = userState.userProfile;
 
-    print('💳 User ID: $userId');
-    print('💳 User email: ${userProfile.email}');
-
     try {
-      // Show loading dialog
-      if (!context.mounted) {
-        print('💳 Context not mounted before showing loading dialog');
-        return;
+      // Show loading dialog on top of purchase dialog
+      if (!dialogContext.mounted) {
+        print('💳 dialogContext not mounted before showing loading dialog');
+        return false;
       }
 
       print('💳 Showing loading dialog');
       showDialog(
-        context: context,
+        context: dialogContext,
         barrierDismissible: false,
         builder: (ctx) => const Center(
           child: CircularProgressIndicator(color: AppColors.white),
         ),
       );
 
-      print('💳 Creating payment service');
       final paymentService = PaymentService(apiKey: moyasarApiKey);
-
-      print(
-          '💳 Calling createInvoice API with amount: ${package.priceInHalalas}');
       final response = await paymentService.createInvoice(
         amount: package.priceInHalalas,
         description: 'شراء ${package.title} - allmahgame',
@@ -314,12 +309,17 @@ class PurchaseDialog {
 
       print('💳 API response received: ${response.url}');
 
-      // Close loading dialog
-      print('💳 Closing loading dialog');
-      navigator.pop();
+      // 1. Pop loading dialog
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
 
-      // Navigate to payment webview
-      print('💳 Navigating to payment webview');
+      // 2. Pop purchase dialog
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+
+      // 3. Navigate to payment webview
       router.push(
         PaymentWebviewRoute(
           paymentUrl: response.url,
@@ -328,15 +328,24 @@ class PurchaseDialog {
           gamesCount: package.gameCount,
         ),
       );
-    } catch (e, stackTrace) {
+      return true;
+    } catch (e) {
       print('💳 Error occurred: $e');
-      print('💳 Stack trace: $stackTrace');
-      navigator.pop();
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في إنشاء الدفع: $e')),
+
+      // Pop loading dialog if mounted
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+
+      if (dialogContext.mounted) {
+        CustomErrorDialog.show(
+          context: dialogContext,
+          title: 'عذراً، حدث خطأ',
+          message:
+              'لم نتمكن من إتمام عملية الدفع، يرجى المحاولة مرة أخرى لاحقاً',
         );
       }
+      return false;
     }
   }
 

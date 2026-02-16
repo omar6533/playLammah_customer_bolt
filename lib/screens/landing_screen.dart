@@ -336,7 +336,7 @@ class _LandingScreenState extends State<LandingScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (menuContext) => Container(
         decoration: const BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.only(
@@ -391,18 +391,21 @@ class _LandingScreenState extends State<LandingScreen> {
                       )
                     : null,
                 onTap: () {
-                  Navigator.pop(context);
+                  Navigator.pop(menuContext);
                   PurchaseDialog.show(
                     context: context,
                     moyasarApiKey: AppConfig.moyasarApiKey,
                     callbackUrl: AppConfig.paymentCallbackUrl,
                     successUrl: AppConfig.paymentSuccessUrl,
                     onPackageSelected: (package) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('تم اختيار: ${package.title}'),
-                        ),
-                      );
+                      if (context.mounted) {
+                        // Success message can remain a SnackBar or use a success dialog
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('تم اختيار: ${package.title}'),
+                          ),
+                        );
+                      }
                     },
                   );
                 },
