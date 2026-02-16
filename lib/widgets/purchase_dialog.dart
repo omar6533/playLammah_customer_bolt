@@ -60,8 +60,8 @@ class PurchaseDialog {
       GamePackage(
         id: 'pkg_1',
         title: '1 لعاب',
-        price: 'SAR 30',
-        priceInHalalas: 3000,
+        price: 'SAR 1',
+        priceInHalalas: 100,
         color: const Color(0xFFE91E63),
         gameCount: 1,
       ),
