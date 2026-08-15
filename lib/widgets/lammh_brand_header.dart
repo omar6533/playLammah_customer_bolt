@@ -26,10 +26,7 @@ class LammhBrandHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        LammhLogo(
-          size: logoSize,
-          color: logoColor,
-        ),
+        LammhLogo(size: logoSize),
         const SizedBox(height: 32),
         Text(
           'لمة ونتحدى',

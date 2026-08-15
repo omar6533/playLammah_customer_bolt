@@ -6,14 +6,18 @@ import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
 import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
+import '../widgets/app_drawer.dart';
+import '../widgets/app_footer.dart';
+import '../widgets/app_navbar.dart';
+import '../widgets/app_text_link.dart';
+import '../widgets/auth_form_field.dart';
+import '../widgets/auth_heading.dart';
 import '../widgets/primary_button.dart';
-import '../widgets/lammh_brand_header.dart';
 
 @RoutePage()
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -45,7 +49,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDesktop = MediaQuery.of(context).size.width >= 768;
+
     return Scaffold(
+      backgroundColor: AppColors.white,
+      drawer: const AppDrawer(),
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is Authenticated) {
@@ -59,122 +67,120 @@ class _LoginScreenState extends State<LoginScreen> {
             );
           }
         },
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.primaryGradient,
-          ),
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const LammhBrandHeader(
-                              logoSize: 100,
-                              logoColor: AppColors.white,
-                              showTagline: false,
-                              titleFontSize: 28,
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            Text(
-                              'تسجيل الدخول',
-                              style: AppTextStyles.xlargeTvExtraBold.copyWith(
-                                color: AppColors.white,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xxl),
-                            Container(
-                              padding: const EdgeInsets.all(AppSpacing.xl),
-                              decoration: BoxDecoration(
-                                color: AppColors.white,
-                                borderRadius: BorderRadius.circular(28),
-                              ),
-                              child: Column(
-                                children: [
-                                  TextFormField(
-                                    controller: _emailController,
-                                    keyboardType: TextInputType.emailAddress,
-                                    decoration: const InputDecoration(
-                                      labelText:
-                                          'البريد الإلكتروني / رقم الجوال',
-                                      prefixIcon: Icon(Icons.email),
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'الرجاء إدخال البريد الإلكتروني أو رقم الجوال';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: AppSpacing.md),
-                                  TextFormField(
-                                    controller: _passwordController,
-                                    obscureText: _obscurePassword,
-                                    decoration: InputDecoration(
-                                      labelText: 'كلمة المرور',
-                                      prefixIcon: const Icon(Icons.lock),
-                                      suffixIcon: IconButton(
-                                        icon: Icon(
-                                          _obscurePassword
-                                              ? Icons.visibility
-                                              : Icons.visibility_off,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            _obscurePassword =
-                                                !_obscurePassword;
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'الرجاء إدخال كلمة المرور';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: AppSpacing.xl),
-                                  BlocBuilder<AuthBloc, AuthState>(
-                                    builder: (context, state) {
-                                      return PrimaryButton(
-                                        label: 'تسجيل الدخول',
-                                        onPressed: _handleLogin,
-                                        isLoading: state is AuthLoading,
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.lg),
-                            TextButton(
-                              onPressed: () {
-                                context.router.push(const RegisterRoute());
-                              },
-                              child: Text(
-                                'ليس لديك حساب؟ إنشاء حساب جديد',
-                                style: AppTextStyles.baseTv.copyWith(
-                                  color: AppColors.white,
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
+        child: Column(
+          children: [
+            const AppNavbar(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: AppSpacing.xxl),
+                    _buildLoginCard(context, isDesktop),
+                    const SizedBox(height: AppSpacing.xxl),
+                    const AppFooter(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoginCard(BuildContext context, bool isDesktop) {
+    final cardWidth =
+        isDesktop ? 480.0 : MediaQuery.of(context).size.width - 32.0;
+
+    return Center(
+      child: Container(
+        width: cardWidth,
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE0E0E0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Form(
+          key: _formKey,
+          child: Directionality(
+            textDirection: TextDirection.rtl,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppTextLink(
+                  'العودة إلى الرئيسية',
+                  onTap: () {},
+                  trailingIcon: Icons.arrow_forward,
+                ),
+                const SizedBox(height: 12),
+                const AuthTitle('تسجيل الدخول'),
+                const SizedBox(height: 4),
+                const AuthSubtitle('وصف'),
+                const SizedBox(height: AppSpacing.xl),
+                AuthFormField(
+                  label: 'البريد الإلكتروني *',
+                  hint: 'يرجى إدخال البريد الإلكتروني',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'الرجاء إدخال البريد الإلكتروني';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                AuthFormField(
+                  label: 'كلمة المرور *',
+                  hint: 'يرجى إدخال كلمة المرور',
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  onToggleObscure: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'الرجاء إدخال كلمة المرور';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: AppTextLink(
+                    'نسيت كلمة المرور',
+                    onTap: () {},
+                    underline: true,
                   ),
-                );
-              },
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    return PrimaryButton(
+                      label: '← تسجيل الدخول',
+                      onPressed: _handleLogin,
+                      isLoading: state is AuthLoading,
+                    );
+                  },
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                Center(
+                  child: AppTextLink(
+                    'إنشاء حساب جديد',
+                    onTap: () => context.router.push(const RegisterRoute()),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ),

@@ -60,9 +60,13 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   );
                 },
-                child: const LammhLogo(
-                  size: 140,
-                  color: AppColors.white,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  padding: const EdgeInsets.all(8),
+                  child: const LammhLogo(size: 140),
                 ),
               ),
               const SizedBox(height: 32),

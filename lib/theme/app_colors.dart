@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const Color primaryRed = Color(0xFFD64453);
+  static const Color navbarDark = Color(0xFF600522);
   static const Color primaryYellow = Color(0xFFFFC107);
   static const Color secondaryRed = Color(0xFFE85865);
   static const Color lightBackground = Color(0xFFEDEDED);

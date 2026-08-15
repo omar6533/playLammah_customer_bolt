@@ -82,10 +82,7 @@ class _AppLoaderState extends State<AppLoader>
                   ),
                 );
               },
-              child: LammhLogo(
-                size: widget.size,
-                color: AppColors.primaryRed,
-              ),
+              child: LammhLogo(size: widget.size),
             ),
             if (widget.loadingText != null) ...[
               const SizedBox(height: 24),
