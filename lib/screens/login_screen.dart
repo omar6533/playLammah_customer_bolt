@@ -117,7 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 AppTextLink(
                   'العودة إلى الرئيسية',
-                  onTap: () {},
+                  onTap: () => context.router.replace(const HomeRoute()),
                   trailingIcon: Icons.arrow_forward,
                 ),
                 const SizedBox(height: 12),

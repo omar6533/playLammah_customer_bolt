@@ -30,7 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
         if (authState is Authenticated) {
           context.router.replace(const LandingRoute());
         } else {
-          context.router.replace(const LoginRoute());
+          context.router.replace(const HomeRoute());
         }
       }
     });

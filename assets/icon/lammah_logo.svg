@@ -1,29 +1,31 @@
 <svg width="400" height="400" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background with rounded corners -->
-  <rect width="400" height="400" rx="80" fill="#D64453"/>
+  <!-- Row 1 -->
+  <path d="M40 60 C40 40 60 30 80 40 C100 50 110 75 95 95 C80 115 55 110 45 90" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M140 35 C155 25 175 30 180 50 C185 70 170 90 150 88 C130 86 120 65 135 50" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M215 40 C230 25 255 28 262 50 C268 70 255 90 235 90 C215 90 205 70 215 52" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M295 50 C305 30 330 28 340 48 C350 68 338 90 318 90 C300 90 288 70 295 52" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
 
-  <!-- Logo design based on Arabic calligraphy "لمة" -->
-  <!-- 2x2 grid pattern with curved bracket-like shapes -->
+  <!-- Row 2 -->
+  <path d="M45 130 C35 110 50 92 70 98 C90 104 100 125 88 142 C76 158 52 155 45 138" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M130 115 C145 100 168 105 172 124 C176 143 160 160 142 156 C124 152 118 132 130 116" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M210 118 C222 102 248 106 252 126 C256 146 240 162 222 158 C204 154 198 134 210 118" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M292 120 C305 104 330 108 334 128 C338 148 322 164 304 160 C286 156 280 136 292 120" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
 
-  <!-- Top Left Bracket -->
-  <path d="M88 72 C60 48 48 60 48 100 C48 140 72 168 112 168 C140 168 160 152 168 128"
-        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Row 3 -->
+  <path d="M50 210 C38 192 52 172 72 178 C92 184 100 206 86 222 C72 238 50 232 48 215" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M130 195 C145 178 168 182 172 202 C176 222 160 238 142 234 C124 230 118 210 130 196" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M212 198 C225 180 250 184 254 205 C258 226 240 242 222 238 C204 234 200 214 212 198" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M294 200 C308 182 332 186 336 208 C340 228 322 244 304 240 C286 236 282 216 294 200" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
 
-  <!-- Top Right Bracket -->
-  <path d="M312 72 C340 48 352 60 352 100 C352 140 328 168 288 168 C260 168 240 152 232 128"
-        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Row 4 -->
+  <path d="M48 288 C36 270 50 250 70 256 C90 262 98 285 84 300 C70 316 48 310 46 292" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M128 275 C143 258 166 262 170 282 C174 302 158 318 140 314 C122 310 116 290 128 276" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M210 278 C223 260 248 264 252 285 C256 306 238 322 220 318 C202 314 198 294 210 278" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M292 280 C306 262 330 266 334 288 C338 308 320 324 302 320 C284 316 280 296 292 280" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
 
-  <!-- Bottom Left Bracket -->
-  <path d="M88 232 C60 208 48 220 48 260 C48 300 72 328 112 328 C140 328 160 312 168 288"
-        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-
-  <!-- Bottom Right Bracket -->
-  <path d="M312 232 C340 208 352 220 352 260 C352 300 328 328 288 328 C260 328 240 312 232 288"
-        stroke="white" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-
-  <!-- Decorative Dots -->
-  <circle cx="128" cy="112" r="16" fill="white"/>
-  <circle cx="272" cy="112" r="16" fill="white"/>
-  <circle cx="128" cy="272" r="16" fill="white"/>
-  <circle cx="272" cy="272" r="16" fill="white"/>
+  <!-- Row 5 -->
+  <path d="M55 355 C44 338 56 320 74 325 C92 330 98 352 85 366 C72 380 52 374 52 358" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M132 348 C146 332 168 336 172 355 C176 374 160 388 143 384 C126 380 120 360 132 348" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M214 350 C228 334 252 338 256 358 C260 378 242 392 225 388 C208 384 202 364 214 350" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M296 352 C310 336 334 340 338 360 C342 380 324 394 307 390 C290 386 284 366 296 352" stroke="white" stroke-width="18" stroke-linecap="round" fill="none"/>
 </svg>

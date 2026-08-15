@@ -54,19 +54,22 @@ class AppNavbar extends StatelessWidget {
         bottom: false,
         child: Row(
           children: [
-            GestureDetector(
-              onTap: onBackTap,
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryRed,
-                  borderRadius: BorderRadius.circular(10),
+            if (onBackTap != null)
+              GestureDetector(
+                onTap: onBackTap,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryRed,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.arrow_forward,
+                      color: AppColors.white, size: 20),
                 ),
-                child: const Icon(Icons.arrow_forward,
-                    color: AppColors.white, size: 20),
-              ),
-            ),
+              )
+            else
+              const SizedBox(width: 40),
             const Spacer(),
             _logo(),
             const Spacer(),

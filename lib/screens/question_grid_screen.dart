@@ -79,7 +79,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
         listener: (context, state) {
           if (state is GameOver) {
             // Use replace to ensure we can't go back to the grid once the game is over
-            context.router.replace(GameOverRoute(gameId: widget.gameId));
+            context.router.replace(const GameOverRoute());
           }
         },
         child: Scaffold(

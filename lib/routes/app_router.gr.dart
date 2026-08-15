@@ -29,7 +29,7 @@ class CategorySelectionRoute extends PageRouteInfo<void> {
 /// generated route for
 /// [GameOverScreen]
 class GameOverRoute extends PageRouteInfo<void> {
-  const GameOverRoute({List<PageRouteInfo>? children, required String gameId})
+  const GameOverRoute({List<PageRouteInfo>? children})
       : super(GameOverRoute.name, initialChildren: children);
 
   static const String name = 'GameOverRoute';
@@ -98,6 +98,22 @@ class GameSetupRouteArgs {
   @override
   int get hashCode =>
       key.hashCode ^ const ListEquality<String>().hash(selectedSubcategories);
+}
+
+/// generated route for
+/// [HomeScreen]
+class HomeRoute extends PageRouteInfo<void> {
+  const HomeRoute({List<PageRouteInfo>? children})
+      : super(HomeRoute.name, initialChildren: children);
+
+  static const String name = 'HomeRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const HomeScreen();
+    },
+  );
 }
 
 /// generated route for
