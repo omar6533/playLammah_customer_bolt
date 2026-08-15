@@ -10,6 +10,7 @@ class AuthFormField extends StatelessWidget {
   final TextInputType keyboardType;
   final bool obscureText;
   final VoidCallback? onToggleObscure;
+  final String? prefixText;
 
   const AuthFormField({
     super.key,
@@ -20,6 +21,7 @@ class AuthFormField extends StatelessWidget {
     this.keyboardType = TextInputType.text,
     this.obscureText = false,
     this.onToggleObscure,
+    this.prefixText,
   });
 
   @override
@@ -53,6 +55,11 @@ class AuthFormField extends StatelessWidget {
       hintText: hint,
       hintStyle: AppTextStyles.mediumRegular.copyWith(
         color: Colors.grey[400],
+        fontSize: 14,
+      ),
+      prefixText: prefixText,
+      prefixStyle: AppTextStyles.mediumRegular.copyWith(
+        color: AppColors.darkGray,
         fontSize: 14,
       ),
       prefixIcon: onToggleObscure != null

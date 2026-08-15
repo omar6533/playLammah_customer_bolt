@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../theme/app_colors.dart';
@@ -5,6 +6,12 @@ import '../theme/app_text_styles.dart';
 
 class AppFooter extends StatelessWidget {
   const AppFooter({super.key});
+
+  // True only when running as a native iOS/Android app — not in any browser.
+  static bool get _isNativeApp =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
 
   @override
   Widget build(BuildContext context) {
@@ -63,15 +70,17 @@ class AppFooter extends StatelessWidget {
           const SizedBox(height: 16),
           Image.asset('assets/images/logo_full.png',
               height: 40, fit: BoxFit.contain),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _storeBadge('assets/images/google_play_badge.svg', width: 110),
-              const SizedBox(width: 12),
-              _storeBadge('assets/images/app_store_badge.svg', width: 110),
-            ],
-          ),
+          if (!_isNativeApp) ...[
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _storeBadge('assets/images/google_play_badge.svg', width: 110),
+                const SizedBox(width: 12),
+                _storeBadge('assets/images/app_store_badge.svg', width: 110),
+              ],
+            ),
+          ],
           const SizedBox(height: 16),
           Text(
             'all rights reserved © 2026 Playlammh',
