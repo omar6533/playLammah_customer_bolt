@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:trivia_game/routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -56,7 +58,7 @@ class AppDrawer extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () {
                     Navigator.of(context).pop();
-                    onLoginTap?.call();
+                    context.router.push(const LoginRoute());
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),

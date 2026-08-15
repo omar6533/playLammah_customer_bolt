@@ -1,4 +1,6 @@
+import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:trivia_game/routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
@@ -71,11 +73,14 @@ class AppNavbar extends StatelessWidget {
             else
               const SizedBox(width: 40),
             const Spacer(),
-            _logo(),
+            GestureDetector(
+                onTap: () => context.router.replace(const HomeRoute()),
+                child: _logo()),
             const Spacer(),
             GestureDetector(
               onTap: () => Scaffold.of(context).openDrawer(),
-              child: const Icon(Icons.menu, color: AppColors.primaryRed, size: 28),
+              child:
+                  const Icon(Icons.menu, color: AppColors.primaryRed, size: 28),
             ),
           ],
         ),
