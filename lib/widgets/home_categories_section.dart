@@ -26,7 +26,7 @@ class HomeCategoriesSection extends StatefulWidget {
 }
 
 class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
-  late final PageController _controller;
+  late PageController _controller;
   int _current = 1;
 
   // TODO: replace with Firestore stream
@@ -38,10 +38,29 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
     _CategoryItem('جغرافيا', 'أسئلة عن دول ومدن العالم', '🌍'),
   ];
 
+  double get _viewportFraction => widget.isDesktop ? 0.20 : 0.60;
+  double get _carouselHeight => widget.isDesktop ? 420 : 380;
+
   @override
   void initState() {
     super.initState();
-    _controller = PageController(viewportFraction: 0.72, initialPage: _current);
+    _controller = PageController(
+      viewportFraction: _viewportFraction,
+      initialPage: _current,
+    );
+  }
+
+  @override
+  void didUpdateWidget(HomeCategoriesSection oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.isDesktop != widget.isDesktop) {
+      final old = _controller;
+      _controller = PageController(
+        viewportFraction: _viewportFraction,
+        initialPage: _current,
+      );
+      old.dispose();
+    }
   }
 
   @override
@@ -59,13 +78,13 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: widget.isDesktop ? 64 : 24),
+              padding:
+                  EdgeInsets.symmetric(horizontal: widget.isDesktop ? 64 : 24),
               child: Column(
                 children: [
                   Text('شرح الفئات',
-                      style: AppTextStyles.xlargeTvExtraBold.copyWith(
-                          color: AppColors.primaryRed, fontSize: 28)),
+                      style: AppTextStyles.xlargeTvExtraBold
+                          .copyWith(color: AppColors.primaryRed, fontSize: 28)),
                   const SizedBox(height: 12),
                   Text(
                     'تختارون 6 فئات، وترا إجمالي الأسئلة 36، خلوها متنوعة عشان تاخذون معلومات جديدة !',
@@ -78,7 +97,7 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
             ),
             const SizedBox(height: 32),
             SizedBox(
-              height: widget.isDesktop ? 340 : 280,
+              height: _carouselHeight,
               child: PageView.builder(
                 controller: _controller,
                 itemCount: _categories.length,
