@@ -137,8 +137,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   if (categoryState is CategoryError) {
                     return Center(
                       child: Text(categoryState.message,
-                          style:
-                              const TextStyle(color: AppColors.primaryRed)),
+                          style: const TextStyle(color: AppColors.primaryRed)),
                     );
                   }
                   if (categoryState is CategoryLoaded) {
@@ -194,8 +193,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
 
   Widget _buildPageHeader(bool isDesktop) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-          isDesktop ? 64 : 24, 32, isDesktop ? 64 : 24, 0),
+      padding:
+          EdgeInsets.fromLTRB(isDesktop ? 64 : 24, 32, isDesktop ? 64 : 24, 0),
       child: Column(
         children: [
           const Text(
@@ -238,10 +237,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                 textDirection: TextDirection.rtl,
                 decoration: const InputDecoration(
                   hintText: 'ابحث باسم الفئة ، الدولة',
-                  hintStyle:
-                      TextStyle(color: Color(0xFF999999), fontSize: 14),
-                  suffixIcon:
-                      Icon(Icons.search, color: AppColors.primaryRed),
+                  hintStyle: TextStyle(color: Color(0xFF999999), fontSize: 14),
+                  suffixIcon: Icon(Icons.search, color: AppColors.primaryRed),
                   border: InputBorder.none,
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -270,8 +267,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
         alignment: WrapAlignment.center,
         children: [
           _filterChip('أجد الفئات', null),
-          ...state.mainCategories
-              .map((cat) => _filterChip(cat.nameAr, cat.id)),
+          ...state.mainCategories.map((cat) => _filterChip(cat.nameAr, cat.id)),
         ],
       ),
     );
@@ -294,9 +290,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           color: isActive ? const Color(0xFF1A1A1A) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isActive
-                ? const Color(0xFF1A1A1A)
-                : const Color(0xFFDDDDDD),
+            color: isActive ? const Color(0xFF1A1A1A) : const Color(0xFFDDDDDD),
           ),
         ),
         child: Text(
@@ -417,8 +411,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   : GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: isDesktop ? 5 : 2,
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
@@ -489,8 +482,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
             GestureDetector(
               onTap: () => _selectRandomCategories(context, state),
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   color: AppColors.primaryRed,
                   borderRadius: BorderRadius.circular(24),
@@ -498,8 +491,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.shuffle_rounded,
-                        color: Colors.white, size: 16),
+                    Icon(Icons.shuffle_rounded, color: Colors.white, size: 16),
                     SizedBox(width: 6),
                     Text(
                       'إختيار فئات عشوائي',

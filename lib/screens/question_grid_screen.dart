@@ -1,11 +1,8 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:trivia_game/routes/app_router.dart';
+import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_text_styles.dart';
-import '../theme/app_spacing.dart';
 import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_event.dart';
 import '../bloc/game/game_state.dart';
@@ -14,25 +11,23 @@ import '../bloc/question/question_event.dart';
 import '../bloc/question/question_state.dart';
 import '../models/question.dart';
 import '../models/sub_category.dart';
-import '../utils/responsive_helper.dart';
 import '../utils/orientation_manager.dart';
 import '../services/app_service.dart';
+import '../widgets/game_navbar.dart';
+import '../widgets/question_category_card.dart';
+import '../widgets/game_team_panel.dart';
 
 @RoutePage()
 class QuestionGridScreen extends StatefulWidget {
   final String gameId;
-
-  const QuestionGridScreen({
-    Key? key,
-    required this.gameId,
-  }) : super(key: key);
+  const QuestionGridScreen({super.key, required this.gameId});
 
   @override
   State<QuestionGridScreen> createState() => _QuestionGridScreenState();
 }
 
 class _QuestionGridScreenState extends State<QuestionGridScreen> {
-  Map<String, SubCategory> _subcategories = {};
+  final Map<String, SubCategory> _subcategories = {};
   bool _isNavigating = false;
 
   @override
@@ -48,77 +43,179 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   Future<void> _loadSubcategories() async {
     try {
       final appService = AppService();
       final categories = await appService.getMainCategories();
       for (final category in categories) {
-        final subcategories =
+        final subs =
             await appService.getSubCategoriesForMainCategory(category.id);
-        for (final sub in subcategories) {
+        for (final sub in subs) {
           _subcategories[sub.id] = sub;
         }
       }
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     } catch (e) {
       debugPrint('Error loading subcategories: $e');
     }
+  }
+
+  Map<String, List<Question>> _groupQuestionsBySubcategory(
+      List<Question> questions) {
+    final Map<String, List<Question>> grouped = {};
+    for (final q in questions) {
+      grouped.putIfAbsent(q.subCategoryId, () => []).add(q);
+    }
+    for (final key in grouped.keys) {
+      grouped[key]!.sort((a, b) => a.points.compareTo(b.points));
+    }
+    return grouped;
+  }
+
+  void _incrementScore(bool isLeft, GameInProgress state) {
+    context.read<GameBloc>().add(UpdateScoreEvent(
+          gameId: widget.gameId,
+          leftTeamScore:
+              isLeft ? state.leftTeam.score + 100 : state.leftTeam.score,
+          rightTeamScore:
+              isLeft ? state.rightTeam.score : state.rightTeam.score + 100,
+          currentTurn: state.gameRecord.currentTurn,
+        ));
+  }
+
+  void _decrementScore(bool isLeft, GameInProgress state) {
+    context.read<GameBloc>().add(UpdateScoreEvent(
+          gameId: widget.gameId,
+          leftTeamScore: isLeft
+              ? (state.leftTeam.score - 100).clamp(0, 999999)
+              : state.leftTeam.score,
+          rightTeamScore: isLeft
+              ? state.rightTeam.score
+              : (state.rightTeam.score - 100).clamp(0, 999999),
+          currentTurn: state.gameRecord.currentTurn,
+        ));
+  }
+
+  void _showExitDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('إنهاء اللعبة',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: AppColors.primaryRed, fontWeight: FontWeight.w800)),
+        content: const Text('هل تريد حقاً الخروج من اللعبة؟',
+            textAlign: TextAlign.center),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.router.popUntilRoot();
+            },
+            child: const Text('خروج',
+                style: TextStyle(color: AppColors.primaryRed)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWinnerDialog(GameInProgress state) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('إظهار الفائز',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                color: AppColors.primaryRed, fontWeight: FontWeight.w800)),
+        content: const Text('هل تريد إنهاء اللعبة وإظهار الفائز؟',
+            textAlign: TextAlign.center),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              final winner = state.leftTeam.score > state.rightTeam.score
+                  ? state.leftTeam.name
+                  : state.rightTeam.score > state.leftTeam.score
+                      ? state.rightTeam.name
+                      : 'tie';
+              context.read<GameBloc>().add(
+                  CompleteGameEvent(gameId: widget.gameId, winner: winner));
+            },
+            child: const Text('إنهاء',
+                style: TextStyle(color: AppColors.primaryRed)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<Question> _mockQuestionsForPlaceholder(String catId) {
+    const pts = [200, 200, 400, 400, 600, 600];
+    return List.generate(
+        6,
+        (i) => Question(
+              id: '${catId}_q$i',
+              subCategoryId: catId,
+              questionText: 'Question ${pts[i]}',
+              questionTextAr: 'سؤال ${pts[i]}',
+              answer: 'Answer',
+              answerAr: 'الجواب',
+              points: pts[i],
+              isActive: true,
+              order: i,
+            ));
   }
 
   @override
   Widget build(BuildContext context) {
     return GameScreenWrapper(
       child: BlocListener<GameBloc, GameState>(
+        listenWhen: (prev, curr) =>
+            (curr is GameOver && prev is! GameOver) ||
+            (curr is GameError && prev is! GameError),
         listener: (context, state) {
           if (state is GameOver) {
-            // Use replace to ensure we can't go back to the grid once the game is over
             context.router.replace(const GameOverRoute());
+          } else if (state is GameError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.primaryRed),
+            );
           }
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5),
-          appBar: _buildAppBar(),
+          backgroundColor: Colors.white,
           body: BlocBuilder<GameBloc, GameState>(
             builder: (context, gameState) {
               if (gameState is! GameInProgress) {
                 return const Center(
-                  child:
-                      CircularProgressIndicator(color: AppColors.primaryYellow),
-                );
+                    child:
+                        CircularProgressIndicator(color: AppColors.primaryRed));
               }
-
               return BlocBuilder<QuestionBloc, QuestionState>(
                 builder: (context, questionState) {
                   if (questionState is QuestionLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(
-                          color: AppColors.primaryYellow),
-                    );
+                        child: CircularProgressIndicator(
+                            color: AppColors.primaryRed));
                   }
-
                   if (questionState is QuestionError) {
                     return Center(
-                      child: Text(
-                        questionState.message,
-                        style: AppTextStyles.mediumRegular
-                            .copyWith(color: AppColors.white),
-                      ),
-                    );
+                        child: Text(questionState.message,
+                            style:
+                                const TextStyle(color: AppColors.primaryRed)));
                   }
-
                   if (questionState is QuestionLoaded) {
-                    return ResponsiveHelper.isLandscape(context)
-                        ? _buildLandscapeLayout(gameState, questionState)
-                        : _buildPortraitLayout(gameState, questionState);
+                    return _buildLayout(gameState, questionState);
                   }
-
                   return const SizedBox.shrink();
                 },
               );
@@ -129,780 +226,134 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.primaryRed,
-      foregroundColor: AppColors.white,
-      automaticallyImplyLeading: false,
-      title: BlocBuilder<GameBloc, GameState>(
-        builder: (context, state) {
-          if (state is GameInProgress) {
-            final gameRecord = state.gameRecord;
-            final currentTeamName = gameRecord.currentTurn == 'left'
-                ? gameRecord.leftTeamName
-                : gameRecord.rightTeamName;
-            return Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              ),
-              decoration: BoxDecoration(
-                color: gameRecord.currentTurn == 'left'
-                    ? AppColors.primaryRed.withOpacity(0.3)
-                    : AppColors.primaryYellow.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.white, width: 2),
-              ),
-              child: Text(
-                'دور فريق : $currentTeamName',
-                style: AppTextStyles.largeTvBold,
-              ),
-            );
-          }
-          return Text('لوحة الأسئلة', style: AppTextStyles.largeTvBold);
-        },
-      ),
-      centerTitle: true,
-      actions: [
-        BlocBuilder<GameBloc, GameState>(
-          builder: (context, state) {
-            if (state is! GameInProgress) return const SizedBox.shrink();
-            return IconButton(
-              icon: const Icon(Icons.emoji_events),
-              onPressed: () => _showWinnerScreen(state),
-              tooltip: 'إظهار الفائز',
-            );
-          },
-        ),
-        IconButton(
-          icon: const Icon(Icons.exit_to_app),
-          onPressed: () => _showExitDialog(),
-        ),
-      ],
-    );
-  }
+  Widget _buildLayout(GameInProgress gameState, QuestionLoaded questionState) {
+    final isRightTurn = gameState.gameRecord.currentTurn == 'right';
+    final currentTeamName =
+        isRightTurn ? gameState.rightTeam.name : gameState.leftTeam.name;
 
-  Widget _buildPortraitLayout(
-      GameInProgress gameState, QuestionLoaded questionState) {
-    return _buildQuestionGrid(gameState, questionState);
-  }
-
-  Widget _buildLandscapeLayout(
-      GameInProgress gameState, QuestionLoaded questionState) {
-    return _buildQuestionGrid(gameState, questionState);
-  }
-
-  Widget _buildScoreBoard(GameInProgress gameState) {
-    return Container(
-      padding: EdgeInsets.all(AppSpacing.md),
-      color: AppColors.darkGray.withOpacity(0.5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildTeamScore(
-            gameState.leftTeam.name,
-            gameState.leftTeam.score,
-            AppColors.primaryRed,
-            gameState.gameRecord.currentTurn == 'left',
-          ),
-          Container(
-            width: 2,
-            height: 60,
-            color: AppColors.white.withOpacity(0.3),
-          ),
-          _buildTeamScore(
-            gameState.rightTeam.name,
-            gameState.rightTeam.score,
-            AppColors.primaryYellow,
-            gameState.gameRecord.currentTurn == 'right',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildScoreBoardVertical(GameInProgress gameState,
-      {required bool left}) {
-    final team = left ? gameState.leftTeam : gameState.rightTeam;
-    final color = left ? AppColors.primaryRed : AppColors.primaryYellow;
-    final isActive =
-        gameState.gameRecord.currentTurn == (left ? 'left' : 'right');
-
-    return Container(
-      padding: EdgeInsets.all(AppSpacing.md),
+    return Directionality(
+      textDirection: TextDirection.rtl,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          RotatedBox(
-            quarterTurns: left ? 3 : 1,
-            child: Text(
-              team.name,
-              style: AppTextStyles.largeTvBold.copyWith(
-                color: AppColors.white,
-              ),
-              textAlign: TextAlign.center,
+          GameNavbar(
+            currentTeamName: currentTeamName,
+            onExit: _showExitDialog,
+            onEndGame: () => _showWinnerDialog(gameState),
+            onHome: () => context.router.popUntilRoot(),
+          ),
+          Expanded(
+            child: Row(
+              children: [
+                // RTL: first child = physical RIGHT → team panel
+                GameTeamPanel(
+                  rightTeamName: gameState.rightTeam.name,
+                  rightTeamScore: gameState.rightTeam.score,
+                  isRightActive: gameState.gameRecord.currentTurn == 'right',
+                  leftTeamName: gameState.leftTeam.name,
+                  leftTeamScore: gameState.leftTeam.score,
+                  isLeftActive: gameState.gameRecord.currentTurn == 'left',
+                  onIncrementRight: () => _incrementScore(false, gameState),
+                  onDecrementRight: () => _decrementScore(false, gameState),
+                  onIncrementLeft: () => _incrementScore(true, gameState),
+                  onDecrementLeft: () => _decrementScore(true, gameState),
+                ),
+                // Second child = physical LEFT → category grid
+                Expanded(
+                  flex: 3,
+                  child: _buildCategoryGrid(gameState, questionState),
+                ),
+              ],
             ),
           ),
-          SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: isActive
-                  ? Border.all(color: AppColors.white, width: 3)
-                  : null,
-            ),
-            child: Text(
-              '${team.score}',
-              style: AppTextStyles.extraLargeTvBold.copyWith(
-                color: color,
-                fontSize: 40,
-              ),
-            ),
-          ),
-          if (isActive) ...[
-            SizedBox(height: AppSpacing.sm),
-            Icon(Icons.arrow_forward, color: AppColors.white, size: 32),
-          ],
         ],
       ),
     );
   }
 
-  Widget _buildTeamScore(
-      String teamName, int score, Color color, bool isActive) {
-    return Expanded(
-      child: Container(
-        padding: EdgeInsets.all(AppSpacing.sm),
-        decoration: BoxDecoration(
-          color: isActive ? color.withOpacity(0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(12),
-          border: isActive ? Border.all(color: color, width: 2) : null,
+  Widget _buildCategoryGrid(
+      GameInProgress gameState, QuestionLoaded questionState) {
+    final grouped = _groupQuestionsBySubcategory(questionState.questions);
+
+    int pad = 0;
+    while (grouped.length < 6) {
+      final id = '__placeholder_${pad++}';
+      grouped[id] = _mockQuestionsForPlaceholder(id);
+      _subcategories.putIfAbsent(
+        id,
+        () => SubCategory(
+          id: id,
+          mainCategoryId: 'mock',
+          name: 'Misc',
+          nameAr: 'أسئلة متنوعة',
+          icon: '🎯',
+          isActive: true,
+          order: 99,
         ),
-        child: Column(
-          children: [
-            Text(
-              teamName,
-              style: AppTextStyles.mediumBold.copyWith(
-                color: AppColors.white,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            SizedBox(height: AppSpacing.xs),
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              ),
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                '$score',
-                style: AppTextStyles.extraLargeTvBold.copyWith(
-                  color: AppColors.white,
-                  fontSize: 32,
-                ),
-              ),
-            ),
-            if (isActive) ...[
-              SizedBox(height: AppSpacing.xs),
-              Text(
-                'دوره',
-                style: AppTextStyles.smallRegular.copyWith(
-                  color: color,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ],
-        ),
+      );
+    }
+
+    final ids = grouped.keys.toList();
+    return Padding(
+      padding: const EdgeInsets.all(10),
+      child: Column(
+        children: [
+          Expanded(
+              child: _buildGridRow(gameState, grouped, ids.take(3).toList())),
+          Expanded(
+              child: _buildGridRow(
+                  gameState, grouped, ids.skip(3).take(3).toList())),
+        ],
       ),
     );
   }
 
-  Widget _buildQuestionGrid(
-      GameInProgress gameState, QuestionLoaded questionState) {
-    final groupedQuestions =
-        _groupQuestionsBySubcategory(questionState.questions);
-    final subcategories = groupedQuestions.keys.toList();
+  Widget _buildGridRow(
+    GameInProgress gameState,
+    Map<String, List<Question>> grouped,
+    List<String> ids,
+  ) {
+    return Row(
+      children: ids.map((id) {
+        final questions = grouped[id]!;
+        final q200 = questions.where((q) => q.points == 200).toList();
+        final q400 = questions.where((q) => q.points == 400).toList();
+        final q600 = questions.where((q) => q.points == 600).toList();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Group categories into rows of 3
-        final List<Widget> rows = [];
-        for (int i = 0; i < subcategories.length; i += 3) {
-          final categoriesInRow = <Widget>[];
+        final leftQs = [
+          q200.isNotEmpty ? q200[0] : questions.first,
+          q400.isNotEmpty ? q400[0] : questions.first,
+          q600.isNotEmpty ? q600[0] : questions.first,
+        ];
+        final rightQs = [
+          q200.length > 1
+              ? q200[1]
+              : (questions.length > 1 ? questions[1] : questions.first),
+          q400.length > 1
+              ? q400[1]
+              : (questions.length > 1 ? questions[1] : questions.first),
+          q600.length > 1
+              ? q600[1]
+              : (questions.length > 1 ? questions[1] : questions.first),
+        ];
 
-          // Add up to 3 categories per row
-          for (int j = 0; j < 3 && (i + j) < subcategories.length; j++) {
-            final categoryId = subcategories[i + j];
-            final categoryQuestions = groupedQuestions[categoryId]!;
-
-            categoriesInRow.add(
-              Expanded(
-                child: _buildCategoryBlock(
-                    gameState, categoryId, categoryQuestions),
-              ),
-            );
-
-            // Add spacing between categories (but not after the last one)
-            if (j < 2 && (i + j + 1) < subcategories.length) {
-              categoriesInRow.add(SizedBox(
-                  width: ResponsiveHelper.getResponsiveValue(context,
-                      mobile: 12, tablet: 24, desktop: 32)));
-            }
-          }
-
-          rows.add(
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: categoriesInRow,
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: QuestionCategoryCard(
+              subCategoryId: id,
+              leftQuestions: leftQs,
+              rightQuestions: rightQs,
+              playedQuestions: gameState.playedQuestions,
+              subcategory: _subcategories[id],
+              gameId: widget.gameId,
+              isNavigating: _isNavigating,
+              onNavigatingChanged: (val) {
+                if (mounted) setState(() => _isNavigating = val);
+              },
             ),
-          );
-
-          // Add spacing between rows
-          if (i + 3 < subcategories.length) {
-            rows.add(SizedBox(
-                height: ResponsiveHelper.getResponsiveValue(context,
-                    mobile: 16, tablet: 32, desktop: 48)));
-          }
-        }
-
-        return Container(
-          color: const Color(0xFFF5F5F5),
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  padding: ResponsiveHelper.getScreenPadding(context),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight -
-                            100), // Subtracting approximate team cards height
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: rows,
-                    ),
-                  ),
-                ),
-              ),
-              SafeArea(
-                top: false,
-                child: _buildTeamCards(gameState),
-              ),
-            ],
           ),
         );
-      },
-    );
-  }
-
-  Widget _buildCategoryBlock(
-    GameInProgress gameState,
-    String subCategoryId,
-    List<Question> questions,
-  ) {
-    // Get questions by point value (2 questions per point level)
-    final q200Questions = questions.where((q) => q.points == 200).toList();
-    final q400Questions = questions.where((q) => q.points == 400).toList();
-    final q600Questions = questions.where((q) => q.points == 600).toList();
-
-    final q200Left = q200Questions.isNotEmpty ? q200Questions[0] : questions[0];
-    final q200Right = q200Questions.length > 1
-        ? q200Questions[1]
-        : (questions.length > 1 ? questions[1] : questions[0]);
-    final q400Left = q400Questions.isNotEmpty ? q400Questions[0] : questions[0];
-    final q400Right = q400Questions.length > 1
-        ? q400Questions[1]
-        : (questions.length > 1 ? questions[1] : questions[0]);
-    final q600Left = q600Questions.isNotEmpty ? q600Questions[0] : questions[0];
-    final q600Right = q600Questions.length > 1
-        ? q600Questions[1]
-        : (questions.length > 1 ? questions[1] : questions[0]);
-
-    final spacing = ResponsiveHelper.getResponsiveValue(context,
-        mobile: 8, tablet: 12, desktop: 16);
-    final iconContainerHeight = ResponsiveHelper.getResponsiveValue(context,
-        mobile: 118, tablet: 150, desktop: 180);
-    final titleBarHeight = ResponsiveHelper.getResponsiveValue(context,
-        mobile: 40, tablet: 50, desktop: 60);
-    final iconSize = ResponsiveHelper.getResponsiveValue(context,
-        mobile: 60, tablet: 80, desktop: 100);
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // LEFT COLUMN - Points
-        Expanded(
-          flex: 1,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildQuestionCell(gameState, q200Left),
-              SizedBox(height: spacing),
-              _buildQuestionCell(gameState, q400Left),
-              SizedBox(height: spacing),
-              _buildQuestionCell(gameState, q600Left),
-            ],
-          ),
-        ),
-        SizedBox(width: spacing),
-        // CENTER COLUMN - Image + Title
-        Expanded(
-          flex: 2,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Category Image
-              Container(
-                height: iconContainerHeight,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    _getIconForSubcategory(subCategoryId),
-                    style: TextStyle(fontSize: iconSize),
-                  ),
-                ),
-              ),
-              SizedBox(height: spacing),
-              // Orange Title Bar
-              Container(
-                height: titleBarHeight,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE8743B),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Center(
-                  child: Text(
-                    _getNameForSubcategory(subCategoryId),
-                    style: AppTextStyles.mediumBold.copyWith(
-                      color: AppColors.white,
-                      fontSize: ResponsiveHelper.getResponsiveFontSize(context,
-                          mobile: 14, tablet: 18, desktop: 22),
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: spacing),
-        // RIGHT COLUMN - Points
-        Expanded(
-          flex: 1,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildQuestionCell(gameState, q200Right),
-              SizedBox(height: spacing),
-              _buildQuestionCell(gameState, q400Right),
-              SizedBox(height: spacing),
-              _buildQuestionCell(gameState, q600Right),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Map<String, List<Question>> _groupQuestionsBySubcategory(
-      List<Question> questions) {
-    final Map<String, List<Question>> grouped = {};
-    for (final question in questions) {
-      if (!grouped.containsKey(question.subCategoryId)) {
-        grouped[question.subCategoryId] = [];
-      }
-      grouped[question.subCategoryId]!.add(question);
-    }
-
-    for (final key in grouped.keys) {
-      grouped[key]!.sort((a, b) => a.points.compareTo(b.points));
-    }
-
-    return grouped;
-  }
-
-  Widget _buildQuestionCell(GameInProgress gameState, Question question) {
-    final isPlayed = gameState.playedQuestions.contains(question.id);
-    final cellHeight = ResponsiveHelper.getResponsiveValue(context,
-        mobile: 45, tablet: 60, desktop: 80);
-    final fontSize = ResponsiveHelper.getResponsiveFontSize(context,
-        mobile: 20, tablet: 26, desktop: 32);
-
-    return Container(
-      height: cellHeight,
-      child: InkWell(
-        onTap: isPlayed || _isNavigating
-            ? null
-            : () async {
-                setState(() => _isNavigating = true);
-                await context.router.push(
-                  QuestionDisplayRoute(
-                    gameId: widget.gameId,
-                    questionId: question.id,
-                  ),
-                );
-                if (mounted) {
-                  setState(() => _isNavigating = false);
-                }
-              },
-        child: Container(
-          decoration: BoxDecoration(
-            color: isPlayed ? const Color(0xFFD3D3D3) : const Color(0xFFD0D0E0),
-            borderRadius: BorderRadius.circular(
-                ResponsiveHelper.getResponsiveValue(context,
-                    mobile: 12, tablet: 16, desktop: 20)),
-          ),
-          child: Center(
-            child: Text(
-              '${question.points}',
-              style: AppTextStyles.largeTvBold.copyWith(
-                color: isPlayed ? Colors.grey.shade500 : AppColors.primaryRed,
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTeamCards(GameInProgress gameState) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: const Color(0xFFE8E8E8),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildTeamCard(
-              gameState.leftTeam.name,
-              gameState.leftTeam.score,
-              true,
-            ),
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: _buildTeamCard(
-              gameState.rightTeam.name,
-              gameState.rightTeam.score,
-              false,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTeamCard(String teamName, int score, bool isLeft) {
-    final gameBloc = context.read<GameBloc>();
-    final gameState = gameBloc.state;
-    if (gameState is! GameInProgress) return const SizedBox.shrink();
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            teamName,
-            style: AppTextStyles.mediumBold.copyWith(
-              color: const Color(0xFF333333),
-              fontSize: 11,
-            ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: 4),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              InkWell(
-                onTap: () => _decrementScore(isLeft, gameState),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryRed,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.remove, color: AppColors.white, size: 14),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  '$score',
-                  style: AppTextStyles.extraLargeTvBold.copyWith(
-                    color: AppColors.primaryRed,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              InkWell(
-                onTap: () => _incrementScore(isLeft, gameState),
-                child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryRed,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.add, color: AppColors.white, size: 14),
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 4),
-          Text(
-            'وسائل المساعدة',
-            style: AppTextStyles.smallRegular.copyWith(
-              color: const Color(0xFF999999),
-              fontSize: 7,
-            ),
-          ),
-          SizedBox(height: 3),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLifelineButton(
-                Icons.people_outline,
-                'استشارة الجمهور',
-                () => _showLifelineDialog(
-                    'استشارة الجمهور', 'سيتم عرض رأي الجمهور للفريق'),
-              ),
-              SizedBox(width: 4),
-              _buildLifelineButton(
-                Icons.phone_outlined,
-                'الاتصال بصديق',
-                () => _showLifelineDialog(
-                    'الاتصال بصديق', 'سيتم السماح للفريق بالاتصال بصديق'),
-              ),
-              SizedBox(width: 4),
-              _buildLifelineButton(
-                Icons.back_hand_outlined,
-                'تجميد الوقت',
-                () => _showLifelineDialog(
-                    'تجميد الوقت', 'سيتم إيقاف العد التنازلي مؤقتاً'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLifelineButton(
-      IconData icon, String tooltip, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 24,
-        height: 24,
-        decoration: BoxDecoration(
-          color: const Color(0xFFCCCCCC),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(
-          icon,
-          size: 13,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-
-  void _incrementScore(bool isLeft, GameInProgress gameState) {
-    final gameBloc = context.read<GameBloc>();
-    int newLeftScore = gameState.leftTeam.score;
-    int newRightScore = gameState.rightTeam.score;
-
-    if (isLeft) {
-      newLeftScore += 100;
-    } else {
-      newRightScore += 100;
-    }
-
-    gameBloc.add(
-      UpdateScoreEvent(
-        gameId: widget.gameId,
-        leftTeamScore: newLeftScore,
-        rightTeamScore: newRightScore,
-        currentTurn: gameState.gameRecord.currentTurn,
-      ),
-    );
-  }
-
-  void _decrementScore(bool isLeft, GameInProgress gameState) {
-    final gameBloc = context.read<GameBloc>();
-    int newLeftScore = gameState.leftTeam.score;
-    int newRightScore = gameState.rightTeam.score;
-
-    if (isLeft) {
-      newLeftScore = (newLeftScore - 100).clamp(0, 999999);
-    } else {
-      newRightScore = (newRightScore - 100).clamp(0, 999999);
-    }
-
-    gameBloc.add(
-      UpdateScoreEvent(
-        gameId: widget.gameId,
-        leftTeamScore: newLeftScore,
-        rightTeamScore: newRightScore,
-        currentTurn: gameState.gameRecord.currentTurn,
-      ),
-    );
-  }
-
-  void _showLifelineDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          title,
-          style: AppTextStyles.mediumBold.copyWith(
-            color: AppColors.primaryRed,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        content: Text(
-          message,
-          style: AppTextStyles.mediumRegular.copyWith(
-            color: const Color(0xFF333333),
-          ),
-          textAlign: TextAlign.center,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'حسناً',
-              style: AppTextStyles.mediumBold.copyWith(
-                color: AppColors.primaryRed,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getIconForSubcategory(String subCategoryId) {
-    return _subcategories[subCategoryId]?.icon ?? '📁';
-  }
-
-  String _getNameForSubcategory(String subCategoryId) {
-    return _subcategories[subCategoryId]?.nameAr ?? '';
-  }
-
-  void _showWinnerScreen(GameInProgress gameState) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('إظهار الفائز', style: AppTextStyles.largeTvBold),
-        content: Text(
-          'هل تريد حقاً إنهاء اللعبة وإظهار الفائز؟',
-          style: AppTextStyles.mediumRegular,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء', style: AppTextStyles.mediumBold),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              final leftScore = gameState.leftTeam.score;
-              final rightScore = gameState.rightTeam.score;
-
-              String winner;
-              if (leftScore > rightScore) {
-                winner = gameState.leftTeam.name;
-              } else if (rightScore > leftScore) {
-                winner = gameState.rightTeam.name;
-              } else {
-                winner = 'tie';
-              }
-
-              final gameBloc = context.read<GameBloc>();
-              gameBloc.add(
-                CompleteGameEvent(
-                  gameId: widget.gameId,
-                  winner: winner,
-                ),
-              );
-            },
-            child: Text(
-              'إظهار',
-              style: AppTextStyles.mediumBold
-                  .copyWith(color: AppColors.primaryRed),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showExitDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('إنهاء اللعبة', style: AppTextStyles.largeTvBold),
-        content: Text(
-          'هل تريد حقاً الخروج من اللعبة؟',
-          style: AppTextStyles.mediumRegular,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء', style: AppTextStyles.mediumBold),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.router.popUntilRoot();
-            },
-            child: Text(
-              'خروج',
-              style: AppTextStyles.mediumBold
-                  .copyWith(color: AppColors.primaryRed),
-            ),
-          ),
-        ],
-      ),
+      }).toList(),
     );
   }
 }
