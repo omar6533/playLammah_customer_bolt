@@ -6,6 +6,7 @@ class GameNavbar extends StatelessWidget {
   final VoidCallback onExit;
   final VoidCallback onEndGame;
   final VoidCallback onHome;
+  final String homeLabel;
 
   const GameNavbar({
     super.key,
@@ -13,6 +14,7 @@ class GameNavbar extends StatelessWidget {
     required this.onExit,
     required this.onEndGame,
     required this.onHome,
+    this.homeLabel = 'الرئيسية',
   });
 
   @override
@@ -31,8 +33,8 @@ class GameNavbar extends StatelessWidget {
             const Spacer(),
             TextButton(
               onPressed: onHome,
-              child: const Text('الرئيسية',
-                  style: TextStyle(color: Color(0xFF888888), fontSize: 13)),
+              child: Text(homeLabel,
+                  style: const TextStyle(color: Color(0xFF888888), fontSize: 13)),
             ),
             TextButton(
               onPressed: onEndGame,
