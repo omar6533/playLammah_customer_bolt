@@ -3,6 +3,7 @@ import '../theme/app_colors.dart';
 
 class GameNavbar extends StatelessWidget {
   final String currentTeamName;
+  final bool showTurnChip;
   final VoidCallback onExit;
   final VoidCallback onEndGame;
   final VoidCallback onHome;
@@ -10,7 +11,8 @@ class GameNavbar extends StatelessWidget {
 
   const GameNavbar({
     super.key,
-    required this.currentTeamName,
+    this.currentTeamName = '',
+    this.showTurnChip = true,
     required this.onExit,
     required this.onEndGame,
     required this.onHome,
@@ -29,7 +31,7 @@ class GameNavbar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20),
         child: Row(
           children: [
-            _TurnChip(teamName: currentTeamName),
+            if (showTurnChip) _TurnChip(teamName: currentTeamName),
             const Spacer(),
             TextButton(
               onPressed: onHome,
