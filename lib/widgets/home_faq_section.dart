@@ -18,10 +18,9 @@ class HomeFaqSection extends StatefulWidget {
 }
 
 class _HomeFaqSectionState extends State<HomeFaqSection> {
-  // TODO: replace with Firestore stream
   static const _faqs = [
     _FaqItem('كيف يمكنني إنشاء لعبة؟',
-        'أنشئ حساب جديد في اللعبة وبعدها اضغط على إنشاء لعبة، قسّم المتواجدين إلى فريقين متساويين، لكل فريق يختار ٣ فئات، اختار اسم لكل فريق وبعدها ابدأ اللعبة .'),
+        'أنشئ حساب جديد في اللعبة وبعدها اضغط على إنشاء لعبة ، قسّم المتواجدين إلى فريقين متساويين ، لكل فريق يختار ٣ فئات ، اختار اسم لكل فريق وبعدها ابدأ اللعبة .'),
     _FaqItem('كم عدد اللاعبين المطلوبين؟',
         'الحد الأدنى شخصين والحد الأقصى غير محدود، المهم تقدرون تقسمون على فريقين.'),
     _FaqItem('ما هي وسائل المساعدة؟',
@@ -32,7 +31,7 @@ class _HomeFaqSectionState extends State<HomeFaqSection> {
         'نعم، يمكنكم اللعب من أي مكان عبر الجوال أو الكمبيوتر.'),
   ];
 
-  final List<bool> _open = List.generate(5, (i) => i == 0);
+  int _openIndex = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -46,55 +45,86 @@ class _HomeFaqSectionState extends State<HomeFaqSection> {
         textDirection: TextDirection.rtl,
         child: Column(
           children: [
-            Text('الأسئلة الشائعة',
-                style: AppTextStyles.xlargeTvExtraBold
-                    .copyWith(color: AppColors.primaryRed, fontSize: 28)),
+            Text(
+              'الأسئلة الشائعة',
+              style: AppTextStyles.xlargeTvExtraBold
+                  .copyWith(color: AppColors.primaryRed, fontSize: 28),
+            ),
             const SizedBox(height: 24),
-            for (int i = 0; i < _faqs.length; i++) _faqItem(i),
+            // Single outer card wrapping all items
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFEEEEEE)),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              clipBehavior: Clip.hardEdge,
+              child: Column(
+                children: [
+                  for (int i = 0; i < _faqs.length; i++) ...[
+                    _faqRow(i),
+                    if (i < _faqs.length - 1)
+                      const Divider(height: 1, thickness: 1, color: Color(0xFFEEEEEE)),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _faqItem(int i) {
+  Widget _faqRow(int i) {
     final faq = _faqs[i];
-    final open = _open[i];
+    final isOpen = _openIndex == i;
+
     return GestureDetector(
-      onTap: () => setState(() => _open[i] = !_open[i]),
+      onTap: () => setState(() => _openIndex = isOpen ? -1 : i),
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFEEEEEE)),
-          borderRadius: BorderRadius.circular(12),
-        ),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        color: isOpen
+            ? AppColors.primaryRed.withValues(alpha: 0.04)
+            : Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Flexible(
-                  child: Text(faq.question,
-                      style: AppTextStyles.mediumBold.copyWith(
-                          color: const Color(0xFFE40D50), fontSize: 15),
-                      textAlign: TextAlign.right),
+                // Question text on the right (RTL: first child = rightmost)
+                Expanded(
+                  child: Text(
+                    faq.question,
+                    style: AppTextStyles.mediumBold.copyWith(
+                      color: AppColors.primaryRed,
+                      fontSize: 15,
+                    ),
+                    textAlign: TextAlign.right,
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
+                // Chevron on the left (RTL: last child = leftmost)
                 Icon(
-                  open ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: const Color(0xFFE40D50),
+                  isOpen
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: AppColors.primaryRed,
+                  size: 22,
                 ),
               ],
             ),
-            if (open && faq.answer.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(faq.answer,
-                  style: AppTextStyles.mediumRegular
-                      .copyWith(color: AppColors.darkGray, fontSize: 14),
-                  textAlign: TextAlign.right),
+            if (isOpen && faq.answer.isNotEmpty) ...[
+              const SizedBox(height: 14),
+              Text(
+                faq.answer,
+                style: AppTextStyles.mediumRegular.copyWith(
+                  color: AppColors.darkGray,
+                  fontSize: 14,
+                  height: 1.6,
+                ),
+                textAlign: TextAlign.right,
+              ),
             ],
           ],
         ),
