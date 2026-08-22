@@ -34,8 +34,7 @@ class AppDrawer extends StatelessWidget {
               final isAuthenticated = authState is Authenticated;
               return BlocBuilder<UserBloc, UserState>(
                 builder: (context, userState) {
-                  final userLoaded =
-                      userState is UserLoaded ? userState : null;
+                  final userLoaded = userState is UserLoaded ? userState : null;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -91,13 +90,13 @@ class AppDrawer extends StatelessWidget {
                                   context,
                                   Icons.sports_esports_outlined,
                                   'لوحة الألعاب',
-                                  () => context.router
-                                      .push(const LandingRoute()),
+                                  () =>
+                                      context.router.push(const LandingRoute()),
                                 ),
                                 _drawerLink(context, 'تواصل معنا'),
                               ] else ...[
-                                ..._links
-                                    .map((label) => _drawerLink(context, label)),
+                                ..._links.map(
+                                    (label) => _drawerLink(context, label)),
                               ],
                               const SizedBox(height: 8),
                             ],
@@ -137,8 +136,8 @@ class AppDrawer extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.primaryRed, width: 1.5),
             ),
-            child: const Icon(Icons.person,
-                color: AppColors.primaryRed, size: 26),
+            child:
+                const Icon(Icons.person, color: AppColors.primaryRed, size: 26),
           ),
           const SizedBox(width: 12),
           Column(
@@ -178,20 +177,19 @@ class AppDrawer extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF5F5F5),
+          color: AppColors.primaryRed,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFEEEEEE)),
         ),
         alignment: Alignment.center,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.logout, color: Color(0xFF888888), size: 18),
+            const Icon(Icons.logout, color: AppColors.white, size: 18),
             const SizedBox(width: 8),
             Text(
               'الخروج',
               style: AppTextStyles.mediumBold.copyWith(
-                color: const Color(0xFF888888),
+                color: AppColors.white,
                 fontSize: 15,
               ),
             ),

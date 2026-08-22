@@ -53,7 +53,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   HomeHeroSection(
                     isDesktop: isDesktop,
-                    onCtaTap: () => context.router.push(const LoginRoute()),
+                    onCtaTap: () {
+                      final authState = context.read<AuthBloc>().state;
+                      if (authState is Authenticated) {
+                        context.router.push(const CategorySelectionRoute());
+                      } else {
+                        context.router.push(const LoginRoute());
+                      }
+                    },
                   ),
                   HomeStepsSection(isDesktop: isDesktop),
                   HomeCategoriesSection(
