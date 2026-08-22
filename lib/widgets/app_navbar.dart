@@ -18,7 +18,7 @@ class AppNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 768;
+    final isDesktop = MediaQuery.of(context).size.width >= 960;
     return isDesktop ? _desktop(context) : _mobile(context);
   }
 

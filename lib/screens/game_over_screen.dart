@@ -20,7 +20,7 @@ class GameOverScreen extends StatelessWidget {
 
   void _goHome(BuildContext context) {
     context.router.pushAndPopUntil(
-      const LandingRoute(),
+      const HomeRoute(),
       predicate: (_) => false,
     );
   }

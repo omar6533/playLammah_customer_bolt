@@ -1,16 +1,13 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trivia_game/widgets/lammah_logo.dart';
-import '../bloc/auth/auth_bloc.dart';
-import '../bloc/auth/auth_state.dart';
 import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 
 @RoutePage()
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -26,12 +23,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkAuth() {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        final authState = context.read<AuthBloc>().state;
-        if (authState is Authenticated) {
-          context.router.replace(const LandingRoute());
-        } else {
-          context.router.replace(const HomeRoute());
-        }
+        context.router.replace(const HomeRoute());
       }
     });
   }

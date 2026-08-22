@@ -65,33 +65,45 @@ class AppDrawer extends StatelessWidget {
                         _profileSection(userLoaded),
                         const Divider(height: 1, color: Color(0xFFEEEEEE)),
                       ],
-                      const SizedBox(height: 8),
-                      // Nav links
-                      if (isAuthenticated) ...[
-                        _drawerActionLink(
-                          context,
-                          Icons.add_circle_outline,
-                          'إنشاء لعبة',
-                          () => context.router
-                              .push(const CategorySelectionRoute()),
+                      // Nav links — scrollable so landscape phones don't overflow
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const SizedBox(height: 8),
+                              if (isAuthenticated) ...[
+                                _drawerActionLink(
+                                  context,
+                                  Icons.add_circle_outline,
+                                  'إنشاء لعبة',
+                                  () => context.router
+                                      .push(const CategorySelectionRoute()),
+                                ),
+                                _drawerActionLink(
+                                  context,
+                                  Icons.emoji_events_outlined,
+                                  'ألعابي',
+                                  () =>
+                                      context.router.push(const MyGamesRoute()),
+                                ),
+                                _drawerActionLink(
+                                  context,
+                                  Icons.sports_esports_outlined,
+                                  'لوحة الألعاب',
+                                  () => context.router
+                                      .push(const LandingRoute()),
+                                ),
+                                _drawerLink(context, 'تواصل معنا'),
+                              ] else ...[
+                                ..._links
+                                    .map((label) => _drawerLink(context, label)),
+                              ],
+                              const SizedBox(height: 8),
+                            ],
+                          ),
                         ),
-                        _drawerActionLink(
-                          context,
-                          Icons.emoji_events_outlined,
-                          'ألعابي',
-                          () => context.router.push(const MyGamesRoute()),
-                        ),
-                        _drawerActionLink(
-                          context,
-                          Icons.sports_esports_outlined,
-                          'لوحة الألعاب',
-                          () => context.router.push(const LandingRoute()),
-                        ),
-                        _drawerLink(context, 'تواصل معنا'),
-                      ] else ...[
-                        ..._links.map((label) => _drawerLink(context, label)),
-                      ],
-                      const Spacer(),
+                      ),
                       const Divider(height: 1, color: Color(0xFFEEEEEE)),
                       Padding(
                         padding: const EdgeInsets.all(20),

@@ -460,10 +460,15 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   Widget _buildSelectedBar(
       BuildContext context, CategoryLoaded state, bool isDesktop) {
     final selected = state.selectedSubcategoryIds;
+    final slotSize = isDesktop ? 44.0 : 38.0;
+    final slotSpacing = isDesktop ? 6.0 : 4.0;
+    final bottomPad = MediaQuery.of(context).padding.bottom;
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 64 : 16,
-        vertical: 12,
+      padding: EdgeInsets.fromLTRB(
+        isDesktop ? 64 : 16,
+        12,
+        isDesktop ? 64 : 16,
+        12 + bottomPad,
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -479,39 +484,50 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
         textDirection: TextDirection.rtl,
         child: Row(
           children: [
+            // Random button: full label on desktop, icon-only on mobile
             GestureDetector(
               onTap: () => _selectRandomCategories(context, state),
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? 16 : 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primaryRed,
                   borderRadius: BorderRadius.circular(24),
                 ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.shuffle_rounded, color: Colors.white, size: 16),
-                    SizedBox(width: 6),
-                    Text(
-                      'إختيار فئات عشوائي',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
+                child: isDesktop
+                    ? const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.shuffle_rounded,
+                              color: Colors.white, size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            'إختيار فئات عشوائي',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      )
+                    : const Icon(Icons.shuffle_rounded,
+                        color: Colors.white, size: 18),
               ),
             ),
             const Spacer(),
             for (int i = 0; i < 6; i++) ...[
-              if (i > 0) const SizedBox(width: 6),
+              if (i > 0) SizedBox(width: slotSpacing),
               i < selected.length
-                  ? _selectedSlot(context, selected[i],
-                      _findSubcategoryById(selected[i])?.icon as String?)
-                  : _emptySlot(),
+                  ? _selectedSlot(
+                      context,
+                      selected[i],
+                      _findSubcategoryById(selected[i])?.icon as String?,
+                      slotSize,
+                    )
+                  : _emptySlot(slotSize),
             ],
           ],
         ),
@@ -520,37 +536,42 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   Widget _selectedSlot(
-      BuildContext context, String subcategoryId, String? icon) {
+      BuildContext context, String subcategoryId, String? icon, double size) {
+    final badgeSize = size * 0.42;
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: size,
+          height: size,
           decoration: BoxDecoration(
             color: const Color(0xFFFFE8EC),
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.primaryRed, width: 2),
           ),
           child: Center(
-            child: Text(icon ?? '🎯', style: const TextStyle(fontSize: 20)),
+            child: Text(
+              icon ?? '🎯',
+              style: TextStyle(fontSize: size * 0.45),
+            ),
           ),
         ),
         Positioned(
-          top: -4,
-          right: -4,
+          top: -3,
+          right: -3,
           child: GestureDetector(
             onTap: () => context.read<CategoryBloc>().add(
                   ToggleSubcategoryEvent(subcategoryId: subcategoryId),
                 ),
             child: Container(
-              width: 18,
-              height: 18,
+              width: badgeSize,
+              height: badgeSize,
               decoration: const BoxDecoration(
                 color: Color(0xFF888888),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.close, color: Colors.white, size: 11),
+              child:
+                  Icon(Icons.close, color: Colors.white, size: badgeSize * 0.6),
             ),
           ),
         ),
@@ -558,16 +579,16 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     );
   }
 
-  Widget _emptySlot() {
+  Widget _emptySlot(double size) {
     return Container(
-      width: 44,
-      height: 44,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: const Color(0xFFF5F5F5),
         shape: BoxShape.circle,
         border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
       ),
-      child: const Icon(Icons.add, color: Color(0xFFCCCCCC), size: 18),
+      child: Icon(Icons.add, color: const Color(0xFFCCCCCC), size: size * 0.42),
     );
   }
 }
