@@ -88,10 +88,10 @@ class AppDrawer extends StatelessWidget {
                                 ),
                                 _drawerActionLink(
                                   context,
-                                  Icons.sports_esports_outlined,
-                                  'لوحة الألعاب',
-                                  () =>
-                                      context.router.push(const LandingRoute()),
+                                  Icons.card_giftcard_outlined,
+                                  'الباقات',
+                                  () => context.router
+                                      .push(const PurchaseGamesRoute()),
                                 ),
                                 _drawerLink(context, 'تواصل معنا'),
                               ] else ...[
