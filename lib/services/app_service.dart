@@ -31,19 +31,24 @@ class AppService {
         mobile: mobile,
       );
     } else {
-      final credential = await _firebaseService.signUp(
-        email: email,
-        password: password,
-        name: name,
-        mobile: mobile,
-      );
-      final profile =
-          await _firebaseService.getUserProfile(credential.user!.uid);
-      return {
-        'success': true,
-        'userId': credential.user!.uid,
-        'user': profile.toJson(),
-      };
+      try {
+        final credential = await _firebaseService.signUp(
+          email: email,
+          password: password,
+          name: name,
+          mobile: mobile,
+        );
+        final profile =
+            await _firebaseService.getUserProfile(credential.user!.uid);
+        return {
+          'success': true,
+          'userId': credential.user!.uid,
+          'user': profile.toJson(),
+        };
+      } catch (e) {
+        print('Error: $e');
+        rethrow;
+      }
     }
   }
 
