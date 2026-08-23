@@ -44,42 +44,42 @@ class SavedGame {
 }
 
 List<SavedGame> _mockGames() => [
-      const SavedGame(
-        id: '1',
-        title: 'اسم اللعبة',
-        leftTeamName: 'اسم الفريق الأول',
-        rightTeamName: 'اسم الفريق الثاني',
-        date: '20.06.2026',
-        timesPlayed: 5,
-        categoryNames: ['دول', 'وكلمة', 'اسلامية', 'رمضان'],
-      ),
-      const SavedGame(
-        id: '2',
-        title: 'اسم اللعبة',
-        leftTeamName: 'الفريق الثاني',
-        rightTeamName: 'الفريق الأول',
-        date: '20.06.2026',
-        timesPlayed: 3,
-        categoryNames: ['دول', 'وكلمة'],
-      ),
-      const SavedGame(
-        id: '3',
-        title: 'اسم اللعبة',
-        leftTeamName: 'الفريق ب',
-        rightTeamName: 'الفريق أ',
-        date: '20.06.2026',
-        timesPlayed: 2,
-        categoryNames: ['اسلامية', 'رمضان'],
-      ),
-      const SavedGame(
-        id: '4',
-        title: 'اسم اللعبة',
-        leftTeamName: 'الفريق 2',
-        rightTeamName: 'الفريق 1',
-        date: '20.06.2026',
-        timesPlayed: 1,
-        categoryNames: ['دول'],
-      ),
+      // const SavedGame(
+      //   id: '1',
+      //   title: 'اسم اللعبة',
+      //   leftTeamName: 'اسم الفريق الأول',
+      //   rightTeamName: 'اسم الفريق الثاني',
+      //   date: '20.06.2026',
+      //   timesPlayed: 5,
+      //   categoryNames: ['دول', 'وكلمة', 'اسلامية', 'رمضان'],
+      // ),
+      // const SavedGame(
+      //   id: '2',
+      //   title: 'اسم اللعبة',
+      //   leftTeamName: 'الفريق الثاني',
+      //   rightTeamName: 'الفريق الأول',
+      //   date: '20.06.2026',
+      //   timesPlayed: 3,
+      //   categoryNames: ['دول', 'وكلمة'],
+      // ),
+      // const SavedGame(
+      //   id: '3',
+      //   title: 'اسم اللعبة',
+      //   leftTeamName: 'الفريق ب',
+      //   rightTeamName: 'الفريق أ',
+      //   date: '20.06.2026',
+      //   timesPlayed: 2,
+      //   categoryNames: ['اسلامية', 'رمضان'],
+      // ),
+      // const SavedGame(
+      //   id: '4',
+      //   title: 'اسم اللعبة',
+      //   leftTeamName: 'الفريق 2',
+      //   rightTeamName: 'الفريق 1',
+      //   date: '20.06.2026',
+      //   timesPlayed: 1,
+      //   categoryNames: ['دول'],
+      // ),
     ];
 
 // ── Screen ───────────────────────────────────────────────────────────────────
@@ -368,8 +368,7 @@ class _GameCard extends StatelessWidget {
                   children: [
                     Text(
                       game.date,
-                      style: const TextStyle(
-                          color: _kSubText, fontSize: 12),
+                      style: const TextStyle(color: _kSubText, fontSize: 12),
                     ),
                     const SizedBox(width: 4),
                     const Icon(Icons.calendar_today_outlined,
@@ -403,8 +402,7 @@ class _GameCard extends StatelessWidget {
                   spacing: 6,
                   runSpacing: 6,
                   alignment: WrapAlignment.end,
-                  children:
-                      game.categoryNames.map(_buildChip).toList(),
+                  children: game.categoryNames.map(_buildChip).toList(),
                 ),
                 const SizedBox(height: 12),
                 // "عرض التفاصيل" button
@@ -419,8 +417,7 @@ class _GameCard extends StatelessWidget {
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       textStyle: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 13),
                     ),
@@ -476,12 +473,9 @@ class _BuyButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primaryRed,
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24)),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
-        textStyle: const TextStyle(
-            fontWeight: FontWeight.w700, fontSize: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
       ),
     );
   }

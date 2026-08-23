@@ -473,7 +473,7 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
               if (!_isDisposed && _router != null) {
                 // Go back to dashboard/landing page
                 _router!.popUntilRoot();
-                _router!.replace(const LandingRoute());
+                _router!.replace(const HomeRoute());
               }
             },
             child: const Text('نعم، العودة للوحة التحكم'),

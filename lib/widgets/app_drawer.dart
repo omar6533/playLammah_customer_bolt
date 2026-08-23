@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:trivia_game/config/app_config.dart';
 import 'package:trivia_game/routes/app_router.dart';
+import 'package:trivia_game/widgets/purchase_dialog.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
@@ -90,8 +92,21 @@ class AppDrawer extends StatelessWidget {
                                   context,
                                   Icons.card_giftcard_outlined,
                                   'الباقات',
-                                  () => context.router
-                                      .push(const PurchaseGamesRoute()),
+                                  () => PurchaseDialog.show(
+                                    context: context,
+                                    moyasarApiKey: AppConfig.moyasarApiKey,
+                                    callbackUrl: AppConfig.paymentCallbackUrl,
+                                    successUrl: AppConfig.paymentSuccessUrl,
+                                    onPackageSelected: (package) {
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content: Text(
+                                                'تم اختيار: ${package.title}')),
+                                      );
+                                    },
+                                  ),
                                 ),
                                 _drawerLink(context, 'تواصل معنا'),
                               ] else ...[
