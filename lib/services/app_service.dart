@@ -150,6 +150,11 @@ class AppService {
     }
   }
 
+  Future<int> getQuestionCountForSubCategory(String subCategoryId) async {
+    if (isMockMode) return 6; // mock always has questions
+    return await _firebaseService.getQuestionCountBySubCategory(subCategoryId);
+  }
+
   Future<List<SubCategory>> getSubCategoriesForMainCategory(
       String mainCategoryId) async {
     if (isMockMode) {

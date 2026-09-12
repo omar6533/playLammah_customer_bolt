@@ -265,6 +265,15 @@ class FirebaseService {
   }
 
   // Question Methods
+  Future<int> getQuestionCountBySubCategory(String subCategoryId) async {
+    final agg = await _firestore
+        .collection('questions')
+        .where('sub_category_id', isEqualTo: subCategoryId)
+        .count()
+        .get();
+    return agg.count ?? 0;
+  }
+
   Future<List<Question>> getQuestionsBySubCategory(String subCategoryId) async {
     // Filter by sub_category_id only; sort in-memory to avoid composite index.
     final snapshot = await _firestore
@@ -352,23 +361,29 @@ class FirebaseService {
     final snapshot = await _firestore
         .collection('games')
         .where('user_id', isEqualTo: userId)
-        .orderBy('created_at', descending: true)
         .get();
 
-    return snapshot.docs.map((doc) {
+    final games = snapshot.docs.map((doc) {
       final data = doc.data();
+      final createdTs = data['created_at'];
+      final updatedTs = data['updated_at'];
+      final completedTs = data['completed_at'];
       return GameRecord.fromJson({
         'id': doc.id,
         ...data,
-        'created_at':
-            (data['created_at'] as Timestamp).toDate().toIso8601String(),
-        'updated_at':
-            (data['updated_at'] as Timestamp).toDate().toIso8601String(),
-        'completed_at': data['completed_at'] != null
-            ? (data['completed_at'] as Timestamp).toDate().toIso8601String()
+        'created_at': createdTs is Timestamp
+            ? createdTs.toDate().toIso8601String()
+            : DateTime.now().toIso8601String(),
+        'updated_at': updatedTs is Timestamp
+            ? updatedTs.toDate().toIso8601String()
+            : DateTime.now().toIso8601String(),
+        'completed_at': completedTs is Timestamp
+            ? completedTs.toDate().toIso8601String()
             : null,
       });
     }).toList();
+    games.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return games;
   }
 
   Future<void> updateGameScore({

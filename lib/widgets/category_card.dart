@@ -6,6 +6,7 @@ import '../theme/app_colors.dart';
 class CategoryCard extends StatelessWidget {
   final String nameAr;
   final String icon;
+  final int? questionCount;
   final bool isSelected;
   final bool isDisabled;
   final VoidCallback? onTap;
@@ -14,6 +15,7 @@ class CategoryCard extends StatelessWidget {
     super.key,
     required this.nameAr,
     required this.icon,
+    this.questionCount,
     this.isSelected = false,
     this.isDisabled = false,
     this.onTap,
@@ -77,22 +79,54 @@ class CategoryCard extends StatelessWidget {
                       duration: const Duration(milliseconds: 200),
                       color: isSelected ? AppColors.primaryRed : Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 10),
-                      child: Center(
-                        child: Text(
-                          nameAr,
-                          style: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : AppColors.primaryRed,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            height: 1.3,
+                          horizontal: 8, vertical: 6),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            nameAr,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Colors.white
+                                  : AppColors.primaryRed,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              height: 1.3,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          textAlign: TextAlign.center,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          if (questionCount != null) ...[
+                            const SizedBox(height: 3),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 1),
+                              decoration: BoxDecoration(
+                                color: questionCount! == 0
+                                    ? Colors.red.shade600
+                                    : (isSelected
+                                        ? Colors.white.withValues(alpha: 0.25)
+                                        : AppColors.primaryRed.withValues(alpha: 0.1)),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                questionCount! == 0
+                                    ? 'لا توجد أسئلة'
+                                    : '${questionCount!} سؤال',
+                                style: TextStyle(
+                                  color: questionCount! == 0
+                                      ? Colors.white
+                                      : (isSelected
+                                          ? Colors.white
+                                          : AppColors.primaryRed),
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ],

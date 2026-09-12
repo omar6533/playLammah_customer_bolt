@@ -26,6 +26,7 @@ class CategorySelectionScreen extends StatefulWidget {
 
 class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   final Map<String, List<dynamic>> _categorySubcategories = {};
+  final Map<String, int> _subcategoryQuestionCounts = {};
   final Set<String> _collapsedCategories = {};
   String _searchQuery = '';
   String? _selectedFilterCategoryId;
@@ -40,12 +41,17 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   Future<void> _loadAllSubcategories() async {
     final appService = AppService();
     final categories = await appService.getMainCategories();
-    for (final category in categories) {
-      final subcategories =
-          await appService.getSubCategoriesForMainCategory(category.id);
-      _categorySubcategories[category.id] = subcategories;
-    }
+    await Future.wait(categories.map((cat) => _loadCategoryData(appService, cat.id)));
     if (mounted) setState(() {});
+  }
+
+  Future<void> _loadCategoryData(AppService appService, String categoryId) async {
+    final subcategories = await appService.getSubCategoriesForMainCategory(categoryId);
+    _categorySubcategories[categoryId] = subcategories;
+    await Future.wait(subcategories.map((sub) async {
+      final count = await appService.getQuestionCountForSubCategory(sub.id);
+      _subcategoryQuestionCounts[sub.id] = count;
+    }));
   }
 
   void _startGame(
@@ -55,8 +61,33 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     String leftTeamName,
     String rightTeamName,
   ) {
+    // Block start if any selected subcategory has no questions
+    final emptySubs = state.selectedSubcategoryIds
+        .where((id) => (_subcategoryQuestionCounts[id] ?? 0) == 0)
+        .toList();
+    if (emptySubs.isNotEmpty) {
+      final name = _findSubcategoryById(emptySubs.first)?.nameAr as String? ?? '';
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'لا توجد أسئلة في فئة: $name — يرجى اختيار فئة أخرى',
+            textDirection: TextDirection.rtl,
+          ),
+          backgroundColor: AppColors.primaryRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
+    final userId = AppService().getCurrentUserId() ?? '';
     context.read<GameBloc>().add(
           CreateGameEvent(
+            userId: userId,
             gameName: gameName,
             leftTeamName: leftTeamName,
             rightTeamName: rightTeamName,
@@ -436,6 +467,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     return CategoryCard(
       nameAr: (subcategory.nameAr as String?) ?? '',
       icon: (subcategory.icon as String?) ?? '🎯',
+      questionCount: _subcategoryQuestionCounts[id],
       isSelected: isSelected,
       isDisabled: !canSelect,
       onTap: () {

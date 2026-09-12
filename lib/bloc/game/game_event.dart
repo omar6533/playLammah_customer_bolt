@@ -8,12 +8,14 @@ abstract class GameEvent extends Equatable {
 }
 
 class CreateGameEvent extends GameEvent {
+  final String userId;
   final String gameName;
   final String leftTeamName;
   final String rightTeamName;
   final List<String> selectedSubcategories;
 
   const CreateGameEvent({
+    required this.userId,
     required this.gameName,
     required this.leftTeamName,
     required this.rightTeamName,
@@ -22,6 +24,7 @@ class CreateGameEvent extends GameEvent {
 
   @override
   List<Object?> get props => [
+        userId,
         gameName,
         leftTeamName,
         rightTeamName,

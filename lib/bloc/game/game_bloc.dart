@@ -85,7 +85,7 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     emit(const GameLoading());
     try {
       final gameId = await _appService.createGame(
-        userId: userId,
+        userId: event.userId,
         gameName: event.gameName,
         leftTeamName: event.leftTeamName,
         rightTeamName: event.rightTeamName,
@@ -240,6 +240,12 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         gameId: event.gameId,
         winner: computedWinner,
       );
+
+      // Decrement user's game balance now that the game is finished
+      final userId = state.gameRecord.userId;
+      if (userId.isNotEmpty) {
+        await _appService.decrementTrial(userId);
+      }
 
       final gameRecord = await _appService.getGame(event.gameId);
       if (gameRecord == null) throw Exception('Game not found');

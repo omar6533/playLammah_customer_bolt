@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trivia_game/bloc/auth/auth_event.dart';
+import 'package:trivia_game/bloc/auth/auth_state.dart';
+import 'package:trivia_game/bloc/user/user_event.dart';
 import 'firebase_options.dart';
 import 'config/app_config.dart';
 import 'bloc/auth/auth_bloc.dart';
@@ -55,20 +57,27 @@ class TriviaGameApp extends StatelessWidget {
           create: (context) => QuestionBloc(),
         ),
       ],
-      child: MaterialApp.router(
-        title: AppConfig.appName,
-        theme: AppTheme.lightTheme(),
-        routerConfig: appRouter.config(),
-        debugShowCheckedModeBanner: false,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaleFactor:
-                  MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
-            ),
-            child: child!,
-          );
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is Authenticated) {
+            context.read<UserBloc>().add(LoadUserEvent(userId: state.userId));
+          }
         },
+        child: MaterialApp.router(
+          title: AppConfig.appName,
+          theme: AppTheme.lightTheme(),
+          routerConfig: appRouter.config(),
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(
+                textScaleFactor:
+                    MediaQuery.of(context).textScaleFactor.clamp(0.8, 1.2),
+              ),
+              child: child!,
+            );
+          },
+        ),
       ),
     );
   }

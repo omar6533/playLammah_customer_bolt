@@ -35,6 +35,10 @@ class _GameSetupFormState extends State<GameSetupForm> {
   final Set<String> _leftTeamTools = {};
   final Set<String> _rightTeamTools = {};
 
+  final _gameNameKey = GlobalKey();
+  final _rightTeamKey = GlobalKey();
+  final _leftTeamKey = GlobalKey();
+
   static const List<Map<String, String>> _tools = [
     {'key': 'استريح', 'label': 'استريح', 'icon': '😴'},
     {'key': 'جاوب_جوابين', 'label': 'جاوب جوابين', 'icon': '✌️'},
@@ -53,13 +57,69 @@ class _GameSetupFormState extends State<GameSetupForm> {
   }
 
   void _submit() {
-    if (_formKey.currentState?.validate() ?? false) {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (isValid) {
       widget.onStart(
         _gameNameController.text.trim(),
         _leftTeamController.text.trim(),
         _rightTeamController.text.trim(),
       );
+      return;
     }
+
+    // Find first empty field, scroll to it, and show a snackbar
+    GlobalKey? firstInvalidKey;
+    String message;
+
+    if (_gameNameController.text.trim().isEmpty) {
+      firstInvalidKey = _gameNameKey;
+      message = 'يرجى إدخال اسم اللعبة';
+    } else if (_rightTeamController.text.trim().isEmpty) {
+      firstInvalidKey = _rightTeamKey;
+      message = 'يرجى إدخال اسم الفريق الأيمن';
+    } else if (_leftTeamController.text.trim().isEmpty) {
+      firstInvalidKey = _leftTeamKey;
+      message = 'يرجى إدخال اسم الفريق الأيسر';
+    } else {
+      message = 'يرجى التحقق من البيانات المدخلة';
+    }
+
+    if (firstInvalidKey?.currentContext != null) {
+      Scrollable.ensureVisible(
+        firstInvalidKey!.currentContext!,
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+        alignment: 0.15,
+      );
+    }
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: const Duration(seconds: 3),
+      ),
+    );
   }
 
   @override
@@ -116,9 +176,12 @@ class _GameSetupFormState extends State<GameSetupForm> {
               ),
             ],
             const SizedBox(height: 24),
-            _GameNameField(
-              controller: _gameNameController,
-              enabled: _canStart,
+            KeyedSubtree(
+              key: _gameNameKey,
+              child: _GameNameField(
+                controller: _gameNameController,
+                enabled: _canStart,
+              ),
             ),
             const SizedBox(height: 28),
             widget.isDesktop ? _buildDesktopVs() : _buildMobileVs(),
@@ -205,22 +268,26 @@ class _GameSetupFormState extends State<GameSetupForm> {
         ? const Color(0xFFFFF5F7)
         : const Color(0xFFEFF6FF);
     final label = isRight ? 'الفريق الأيمن' : 'الفريق الأيسر';
+    final panelKey = isRight ? _rightTeamKey : _leftTeamKey;
 
-    return _TeamPanel(
-      controller: controller,
-      label: label,
-      teamTools: teamTools,
-      accentColor: accentColor,
-      bgColor: bgColor,
-      enabled: _canStart,
-      tools: _tools,
-      onToolToggle: (key) => setState(() {
-        if (teamTools.contains(key)) {
-          teamTools.remove(key);
-        } else if (teamTools.length < 3) {
-          teamTools.add(key);
-        }
-      }),
+    return KeyedSubtree(
+      key: panelKey,
+      child: _TeamPanel(
+        controller: controller,
+        label: label,
+        teamTools: teamTools,
+        accentColor: accentColor,
+        bgColor: bgColor,
+        enabled: _canStart,
+        tools: _tools,
+        onToolToggle: (key) => setState(() {
+          if (teamTools.contains(key)) {
+            teamTools.remove(key);
+          } else if (teamTools.length < 3) {
+            teamTools.add(key);
+          }
+        }),
+      ),
     );
   }
 }

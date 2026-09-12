@@ -8,6 +8,7 @@ import '../theme/app_spacing.dart';
 import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_event.dart';
 import '../bloc/game/game_state.dart';
+import '../services/app_service.dart';
 import '../utils/responsive_helper.dart';
 import '../widgets/primary_button.dart';
 
@@ -29,12 +30,17 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
   final _gameNameController = TextEditingController();
   final _leftTeamController = TextEditingController();
   final _rightTeamController = TextEditingController();
+  final _scrollController = ScrollController();
+  final _gameNameKey = GlobalKey();
+  final _leftTeamKey = GlobalKey();
+  final _rightTeamKey = GlobalKey();
 
   @override
   void dispose() {
     _gameNameController.dispose();
     _leftTeamController.dispose();
     _rightTeamController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -69,6 +75,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
         child: BlocBuilder<GameBloc, GameState>(
           builder: (context, state) {
             return SingleChildScrollView(
+              controller: _scrollController,
               padding: screenPadding,
               child: Form(
                 key: _formKey,
@@ -161,6 +168,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
   Widget _buildGameNameField() {
     return Column(
+      key: _gameNameKey,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -226,6 +234,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
   Widget _buildLeftTeamCard() {
     return Container(
+      key: _leftTeamKey,
       padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.primaryRed.withOpacity(0.1),
@@ -296,6 +305,7 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
 
   Widget _buildRightTeamCard() {
     return Container(
+      key: _rightTeamKey,
       padding: EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.primaryYellow.withOpacity(0.1),
@@ -375,15 +385,74 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
   }
 
   void _startGame() {
-    if (_formKey.currentState?.validate() ?? false) {
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (isValid) {
+      final userId = AppService().getCurrentUserId() ?? '';
       context.read<GameBloc>().add(
             CreateGameEvent(
+              userId: userId,
               gameName: _gameNameController.text.trim(),
               leftTeamName: _leftTeamController.text.trim(),
               rightTeamName: _rightTeamController.text.trim(),
               selectedSubcategories: widget.selectedSubcategories,
             ),
           );
+      return;
     }
+
+    // Find the first empty field and scroll to it
+    GlobalKey? firstInvalidKey;
+    String missingFieldMessage;
+
+    if (_gameNameController.text.trim().isEmpty) {
+      firstInvalidKey = _gameNameKey;
+      missingFieldMessage = 'يرجى إدخال اسم اللعبة';
+    } else if (_leftTeamController.text.trim().isEmpty) {
+      firstInvalidKey = _leftTeamKey;
+      missingFieldMessage = 'يرجى إدخال اسم الفريق الأيسر';
+    } else if (_rightTeamController.text.trim().isEmpty) {
+      firstInvalidKey = _rightTeamKey;
+      missingFieldMessage = 'يرجى إدخال اسم الفريق الأيمن';
+    } else {
+      missingFieldMessage = 'يرجى التحقق من البيانات المدخلة';
+    }
+
+    if (firstInvalidKey?.currentContext != null) {
+      Scrollable.ensureVisible(
+        firstInvalidKey!.currentContext!,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        alignment: 0.1,
+      );
+    }
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Colors.white, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                missingFieldMessage,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.primaryRed,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        duration: const Duration(seconds: 3),
+        elevation: 6,
+      ),
+    );
   }
 }
