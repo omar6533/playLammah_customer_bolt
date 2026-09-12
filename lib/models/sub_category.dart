@@ -20,14 +20,15 @@ class SubCategory extends Equatable {
   });
 
   factory SubCategory.fromJson(Map<String, dynamic> json) {
+    final nameAr = (json['name_ar'] as String?) ?? '';
     return SubCategory(
       id: json['id'] as String,
-      mainCategoryId: json['main_category_id'] as String,
-      name: json['name'] as String,
-      nameAr: json['name_ar'] as String,
-      icon: json['icon'] as String,
-      isActive: json['is_active'] as bool,
-      order: json['order'] as int,
+      mainCategoryId: (json['main_category_id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? nameAr,
+      nameAr: nameAr,
+      icon: (json['icon'] as String?) ?? '',
+      isActive: (json['is_active'] as bool?) ?? true,
+      order: (json['order'] as int?) ?? 0,
     );
   }
 

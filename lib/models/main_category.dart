@@ -16,12 +16,13 @@ class MainCategory extends Equatable {
   });
 
   factory MainCategory.fromJson(Map<String, dynamic> json) {
+    final nameAr = (json['name_ar'] as String?) ?? '';
     return MainCategory(
       id: json['id'] as String,
-      name: json['name'] as String,
-      nameAr: json['name_ar'] as String,
-      isActive: json['is_active'] as bool,
-      order: json['order'] as int,
+      name: (json['name'] as String?) ?? nameAr,
+      nameAr: nameAr,
+      isActive: (json['is_active'] as bool?) ?? true,
+      order: (json['order'] as int?) ?? 0,
     );
   }
 

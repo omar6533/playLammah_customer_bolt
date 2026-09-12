@@ -222,58 +222,69 @@ class FirebaseService {
 
   // Category Methods
   Future<List<MainCategory>> getMainCategories() async {
+    // Fetch all active main categories; sort in-memory to avoid composite index requirement.
     final snapshot = await _firestore
         .collection('main_categories')
         .where('is_active', isEqualTo: true)
-        .orderBy('order_num')
         .get();
 
-    return snapshot.docs.map((doc) {
+    final cats = snapshot.docs.map((doc) {
       final data = doc.data();
       return MainCategory.fromJson({
         'id': doc.id,
         ...data,
-        'order': data['order_num'] ?? 0,
+        // admin writes display_order; fall back to order_num for legacy docs
+        'order': data['display_order'] ?? data['order_num'] ?? 0,
       });
     }).toList();
+    cats.sort((a, b) => a.order.compareTo(b.order));
+    return cats;
   }
 
   Future<List<SubCategory>> getSubCategoriesByMainCategory(
       String mainCategoryId) async {
+    // Filter by main_category_id only; sort in-memory to avoid composite index.
     final snapshot = await _firestore
         .collection('sub_categories')
         .where('main_category_id', isEqualTo: mainCategoryId)
-        .where('is_active', isEqualTo: true)
-        .orderBy('order_num')
         .get();
 
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      return SubCategory.fromJson({
-        'id': doc.id,
-        ...data,
-        'order': data['order_num'] ?? 0,
-      });
-    }).toList();
+    final subs = snapshot.docs
+        .map((doc) {
+          final data = doc.data();
+          return SubCategory.fromJson({
+            'id': doc.id,
+            ...data,
+            'order': data['display_order'] ?? data['order_num'] ?? 0,
+          });
+        })
+        .where((s) => s.isActive)
+        .toList();
+    subs.sort((a, b) => a.order.compareTo(b.order));
+    return subs;
   }
 
   // Question Methods
   Future<List<Question>> getQuestionsBySubCategory(String subCategoryId) async {
+    // Filter by sub_category_id only; sort in-memory to avoid composite index.
     final snapshot = await _firestore
         .collection('questions')
         .where('sub_category_id', isEqualTo: subCategoryId)
-        .where('is_active', isEqualTo: true)
-        .orderBy('order_num')
         .get();
 
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      return Question.fromJson({
-        'id': doc.id,
-        ...data,
-        'order': data['order_num'] ?? 0,
-      });
-    }).toList();
+    final questions = snapshot.docs
+        .map((doc) {
+          final data = doc.data();
+          return Question.fromJson({
+            'id': doc.id,
+            ...data,
+            'order': data['display_order'] ?? data['order_num'] ?? 0,
+          });
+        })
+        .where((q) => q.isActive)
+        .toList();
+    questions.sort((a, b) => a.order.compareTo(b.order));
+    return questions;
   }
 
   Future<Question?> getQuestionById(String questionId) async {

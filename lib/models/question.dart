@@ -30,14 +30,14 @@ class Question extends Equatable {
   factory Question.fromJson(Map<String, dynamic> json) {
     return Question(
       id: json['id'] as String,
-      subCategoryId: json['sub_category_id'] as String,
-      questionText: json['question_text'] as String,
-      questionTextAr: json['question_text_ar'] as String,
-      answer: json['answer'] as String,
-      answerAr: json['answer_ar'] as String,
-      points: json['points'] as int,
-      isActive: json['is_active'] as bool,
-      order: json['order'] as int,
+      subCategoryId: (json['sub_category_id'] as String?) ?? '',
+      questionText: (json['question_text'] as String?) ?? (json['question_text_ar'] as String?) ?? '',
+      questionTextAr: (json['question_text_ar'] as String?) ?? (json['question_text'] as String?) ?? '',
+      answer: (json['answer'] as String?) ?? (json['answer_ar'] as String?) ?? '',
+      answerAr: (json['answer_ar'] as String?) ?? (json['answer'] as String?) ?? '',
+      points: (json['points'] as int?) ?? 0,
+      isActive: (json['is_active'] as bool?) ?? true,
+      order: (json['order'] as int?) ?? 0,
       mediaUrl: json['media_url'] as String?,
       mediaType: json['media_type'] as String?,
     );
