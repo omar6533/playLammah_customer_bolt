@@ -77,7 +77,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           backgroundColor: AppColors.primaryRed,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          margin: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 104),
           duration: const Duration(seconds: 4),
         ),
       );
