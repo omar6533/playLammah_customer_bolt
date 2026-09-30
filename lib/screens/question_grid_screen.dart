@@ -315,26 +315,11 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     return Row(
       children: ids.map((id) {
         final questions = grouped[id]!;
-        final q200 = questions.where((q) => q.points == 200).toList();
-        final q400 = questions.where((q) => q.points == 400).toList();
-        final q600 = questions.where((q) => q.points == 600).toList();
-
-        final leftQs = [
-          q200.isNotEmpty ? q200[0] : questions.first,
-          q400.isNotEmpty ? q400[0] : questions.first,
-          q600.isNotEmpty ? q600[0] : questions.first,
-        ];
-        final rightQs = [
-          q200.length > 1
-              ? q200[1]
-              : (questions.length > 1 ? questions[1] : questions.first),
-          q400.length > 1
-              ? q400[1]
-              : (questions.length > 1 ? questions[1] : questions.first),
-          q600.length > 1
-              ? q600[1]
-              : (questions.length > 1 ? questions[1] : questions.first),
-        ];
+        // Distribute positionally so each cell always gets a unique question ID.
+        // questions is already sorted ascending by points (done in _groupQuestionsBySubcategory).
+        Question _at(int i) => i < questions.length ? questions[i] : questions.last;
+        final leftQs = [_at(0), _at(2), _at(4)];
+        final rightQs = [_at(1), _at(3), _at(5)];
 
         return Expanded(
           child: Padding(

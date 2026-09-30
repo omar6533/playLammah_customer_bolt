@@ -33,12 +33,12 @@ class Question extends Equatable {
       subCategoryId: (json['sub_category_id'] as String?) ?? '',
       questionText: (json['question_text'] as String?) ?? (json['question_text_ar'] as String?) ?? '',
       questionTextAr: (json['question_text_ar'] as String?) ?? (json['question_text'] as String?) ?? '',
-      answer: (json['answer'] as String?) ?? (json['answer_ar'] as String?) ?? '',
-      answerAr: (json['answer_ar'] as String?) ?? (json['answer'] as String?) ?? '',
+      answer: (json['answer_text_ar'] as String?) ?? (json['answer'] as String?) ?? (json['answer_ar'] as String?) ?? '',
+      answerAr: (json['answer_text_ar'] as String?) ?? (json['answer_ar'] as String?) ?? (json['answer'] as String?) ?? '',
       points: (json['points'] as int?) ?? 0,
-      isActive: (json['is_active'] as bool?) ?? true,
+      isActive: (json['is_active'] as bool?) ?? ((json['status'] as String?) == 'active' ? true : true),
       order: (json['order'] as int?) ?? 0,
-      mediaUrl: json['media_url'] as String?,
+      mediaUrl: (json['question_media_url'] as String?) ?? (json['media_url'] as String?),
       mediaType: json['media_type'] as String?,
     );
   }

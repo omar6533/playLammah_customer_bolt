@@ -84,6 +84,27 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       return;
     }
 
+    // Block start if total questions across all selected subcategories < 36
+    final totalQuestions = state.selectedSubcategoryIds
+        .fold(0, (sum, id) => sum + (_subcategoryQuestionCounts[id] ?? 0));
+    if (totalQuestions < 36) {
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'إجمالي الأسئلة ($totalQuestions) أقل من 36 — اختر فئات بها أسئلة أكثر',
+            textDirection: TextDirection.rtl,
+          ),
+          backgroundColor: AppColors.primaryRed,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          margin: const EdgeInsets.only(left: 16, right: 16, top: 12, bottom: 104),
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return;
+    }
+
     final userId = AppService().getCurrentUserId() ?? '';
     context.read<GameBloc>().add(
           CreateGameEvent(
@@ -101,7 +122,11 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     bloc.add(const ClearSubcategorySelectionsEvent());
     final all = <dynamic>[];
     for (final subs in _categorySubcategories.values) {
-      all.addAll(subs);
+      for (final sub in subs) {
+        if ((_subcategoryQuestionCounts[sub.id as String] ?? 0) > 0) {
+          all.add(sub);
+        }
+      }
     }
     all.shuffle();
     for (final sub in all.take(6)) {
@@ -462,16 +487,25 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       BuildContext context, CategoryLoaded state, dynamic subcategory) {
     final id = subcategory.id as String;
     final isSelected = state.selectedSubcategoryIds.contains(id);
-    final canSelect = isSelected || state.selectedSubcategoryIds.length < 6;
+    final questionCount = _subcategoryQuestionCounts[id] ?? -1;
+    final hasNoQuestions = questionCount == 0;
+    final canSelect = !hasNoQuestions && (isSelected || state.selectedSubcategoryIds.length < 6);
 
     return CategoryCard(
       nameAr: (subcategory.nameAr as String?) ?? '',
       icon: (subcategory.icon as String?) ?? '🎯',
-      questionCount: _subcategoryQuestionCounts[id],
+      questionCount: questionCount >= 0 ? questionCount : null,
       isSelected: isSelected,
       isDisabled: !canSelect,
       onTap: () {
-        if (canSelect) {
+        if (hasNoQuestions) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('لا توجد أسئلة في هذه الفئة'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else if (canSelect) {
           context
               .read<CategoryBloc>()
               .add(ToggleSubcategoryEvent(subcategoryId: id));
