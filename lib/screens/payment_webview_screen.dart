@@ -9,6 +9,7 @@ import '../theme/app_text_styles.dart';
 import '../routes/app_router.dart';
 import '../services/payment_service.dart';
 import '../services/app_service.dart';
+import '../services/store_service.dart';
 import '../config/app_config.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/user/user_bloc.dart';
@@ -332,6 +333,15 @@ class _PaymentWebviewScreenState extends State<PaymentWebviewScreen> {
             } catch (e) {
               print('⚠️ Failed to record payment: $e');
               // Continue anyway, the important part (adding games) succeeded
+            }
+
+            final promoCode = invoice.metadata['promo_code'] as String?;
+            if (promoCode != null && promoCode.isNotEmpty) {
+              try {
+                await StoreService().recordPromoUse(promoCode);
+              } catch (e) {
+                print('⚠️ Failed to record promo code use: $e');
+              }
             }
 
             print('🔄 Reloading user profile...');

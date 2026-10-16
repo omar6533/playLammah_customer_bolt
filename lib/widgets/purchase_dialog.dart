@@ -1,11 +1,11 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
 import '../services/payment_service.dart';
+import '../services/store_service.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_state.dart';
 import '../bloc/user/user_bloc.dart';
@@ -13,77 +13,18 @@ import '../bloc/user/user_state.dart';
 import '../routes/app_router.dart';
 import 'custom_error_dialog.dart';
 
-class GamePackage {
-  final String id;
-  final String title;
-  final String price;
-  final int priceInHalalas;
-  final Color color;
-  final int gameCount;
-
-  GamePackage({
-    required this.id,
-    required this.title,
-    required this.price,
-    required this.priceInHalalas,
-    required this.color,
-    required this.gameCount,
-  });
-}
-
 class PurchaseDialog {
-  static List<GamePackage> getDefaultPackages() {
-    return [
-      GamePackage(
-        id: 'pkg_10',
-        title: '10 ألعاب',
-        price: 'SAR 230',
-        priceInHalalas: 23000,
-        color: AppColors.primaryRed,
-        gameCount: 10,
-      ),
-      GamePackage(
-        id: 'pkg_5',
-        title: '5 العاب',
-        price: 'SAR 122',
-        priceInHalalas: 12200,
-        color: const Color(0xFF9C27B0),
-        gameCount: 5,
-      ),
-      GamePackage(
-        id: 'pkg_2',
-        title: '2 لعاب',
-        price: 'SAR 55',
-        priceInHalalas: 5500,
-        color: const Color(0xFF4CAF50),
-        gameCount: 2,
-      ),
-      GamePackage(
-        id: 'pkg_1',
-        title: '1 لعاب',
-        price: 'SAR 1',
-        priceInHalalas: 100,
-        color: const Color(0xFFE91E63),
-        gameCount: 1,
-      ),
-    ];
-  }
-
   static void show({
     required BuildContext context,
-    List<GamePackage>? packages,
     Function(GamePackage)? onPackageSelected,
     String? moyasarApiKey,
     String? callbackUrl,
     String? successUrl,
   }) {
-    final packageList = packages ?? getDefaultPackages();
-
-    // Capture BLoC states, router, and navigator BEFORE showing dialog
+    // Capture BLoC states and router BEFORE showing dialog
     final authState = context.read<AuthBloc>().state;
     final userState = context.read<UserBloc>().state;
     final router = context.router;
-    final navigator = Navigator.of(context);
 
     showDialog(
       context: context,
@@ -144,81 +85,23 @@ class PurchaseDialog {
                     ),
                   ),
                   Flexible(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(AppSpacing.lg),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            'لعبة جماعية تفاعلية يختار فيها معرفتكم و ثقافتكم',
-                            style: AppTextStyles.largeTvBold.copyWith(
-                              color: const Color(0xFF333333),
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Container(
-                            padding: const EdgeInsets.all(AppSpacing.md),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFF3E0),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  'لإنشاء لعبة جديدة اضغط على ( لعبة جديدة )',
-                                  style: AppTextStyles.mediumRegular.copyWith(
-                                    color: const Color(0xFF666666),
-                                    fontSize: 13,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: AppSpacing.xs),
-                                Text(
-                                  'و لاسترجاع الألعاب السابقة، اضغط على ( ألعابي )',
-                                  style: AppTextStyles.mediumRegular.copyWith(
-                                    color: const Color(0xFF666666),
-                                    fontSize: 13,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          ...packageList.map((package) => Padding(
-                                padding: const EdgeInsets.only(
-                                    bottom: AppSpacing.sm),
-                                child: _buildPackageButton(
-                                  package: package,
-                                  onTap: () async {
-                                    print(
-                                        '🛒 Package selected: ${package.title}');
-                                    print('🛒 Calling _handlePackagePurchase');
-                                    final success =
-                                        await _handlePackagePurchase(
-                                      context: context,
-                                      dialogContext: dialogContext,
-                                      package: package,
-                                      authState: authState,
-                                      userState: userState,
-                                      router: router,
-                                      navigator: navigator,
-                                      moyasarApiKey: moyasarApiKey,
-                                      callbackUrl: callbackUrl,
-                                      successUrl: successUrl,
-                                    );
-                                    print(
-                                        '🛒 Purchase handling completed. Success: $success');
-                                    if (success && context.mounted) {
-                                      onPackageSelected?.call(package);
-                                    }
-                                  },
-                                ),
-                              )),
-                        ],
-                      ),
+                    child: _PurchaseDialogBody(
+                      onPurchase: (package, promo) async {
+                        final success = await _handlePackagePurchase(
+                          dialogContext: dialogContext,
+                          package: package,
+                          promo: promo,
+                          authState: authState,
+                          userState: userState,
+                          router: router,
+                          moyasarApiKey: moyasarApiKey,
+                          callbackUrl: callbackUrl,
+                          successUrl: successUrl,
+                        );
+                        if (success && context.mounted) {
+                          onPackageSelected?.call(package);
+                        }
+                      },
                     ),
                   ),
                 ],
@@ -231,21 +114,17 @@ class PurchaseDialog {
   }
 
   static Future<bool> _handlePackagePurchase({
-    required BuildContext context,
     required BuildContext dialogContext,
     required GamePackage package,
+    required PromoCode? promo,
     required AuthState authState,
     required UserState userState,
     required StackRouter router,
-    required NavigatorState navigator,
     String? moyasarApiKey,
     String? callbackUrl,
     String? successUrl,
   }) async {
-    print('💳 _handlePackagePurchase started');
-
     if (moyasarApiKey == null) {
-      print('💳 API key is null');
       if (dialogContext.mounted) {
         CustomErrorDialog.show(
           context: dialogContext,
@@ -256,10 +135,7 @@ class PurchaseDialog {
       return false;
     }
 
-    print('💳 API key available: ${moyasarApiKey.substring(0, 10)}...');
-
     if (authState is! Authenticated || userState is! UserLoaded) {
-      print('💳 User not authenticated or profile not loaded');
       if (dialogContext.mounted) {
         CustomErrorDialog.show(
           context: dialogContext,
@@ -274,13 +150,8 @@ class PurchaseDialog {
     final userProfile = userState.userProfile;
 
     try {
-      // Show loading dialog on top of purchase dialog
-      if (!dialogContext.mounted) {
-        print('💳 dialogContext not mounted before showing loading dialog');
-        return false;
-      }
+      if (!dialogContext.mounted) return false;
 
-      print('💳 Showing loading dialog');
       showDialog(
         context: dialogContext,
         barrierDismissible: false,
@@ -289,9 +160,17 @@ class PurchaseDialog {
         ),
       );
 
+      // Re-check the code right before charging in case it was disabled or
+      // used up while the dialog was open.
+      final activePromo = promo == null
+          ? null
+          : await StoreService().validatePromoCode(promo.code);
+      final amount =
+          package.discountedHalalas(activePromo?.discountPercent ?? 0);
+
       final paymentService = PaymentService(apiKey: moyasarApiKey);
       final response = await paymentService.createInvoice(
-        amount: package.priceInHalalas,
+        amount: amount,
         description: 'شراء ${package.title} - allmahgame',
         callbackUrl: callbackUrl ?? 'https://allmahgame.com/payment-callback',
         successUrl: successUrl ?? 'https://allmahgame.com/payment-success',
@@ -303,23 +182,18 @@ class PurchaseDialog {
           'package_id': package.id,
           'package_title': package.title,
           'games_count': package.gameCount.toString(),
-          'price': package.price,
+          'price': GamePackage.formatSar(amount),
+          'original_price': package.price,
+          if (activePromo != null) 'promo_code': activePromo.code,
+          if (activePromo != null)
+            'discount_percent': activePromo.discountPercent.toString(),
         },
       );
 
-      print('💳 API response received: ${response.url}');
+      // Pop loading dialog, then the purchase dialog
+      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
-      // 1. Pop loading dialog
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-
-      // 2. Pop purchase dialog
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-
-      // 3. Navigate to payment webview
       router.push(
         PaymentWebviewRoute(
           paymentUrl: response.url,
@@ -330,31 +204,273 @@ class PurchaseDialog {
       );
       return true;
     } catch (e) {
-      print('💳 Error occurred: $e');
-
-      // Pop loading dialog if mounted
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
+      debugPrint('💳 Purchase error: $e');
+      if (dialogContext.mounted) Navigator.of(dialogContext).pop();
 
       if (dialogContext.mounted) {
         CustomErrorDialog.show(
           context: dialogContext,
           title: 'عذراً، حدث خطأ',
-          message:
-              'لم نتمكن من إتمام عملية الدفع، يرجى المحاولة مرة أخرى لاحقاً',
+          message: e is PromoCodeException
+              ? e.message
+              : 'لم نتمكن من إتمام عملية الدفع، يرجى المحاولة مرة أخرى لاحقاً',
         );
       }
       return false;
     }
   }
+}
 
-  static Widget _buildPackageButton({
-    required GamePackage package,
-    required VoidCallback onTap,
-  }) {
+class _PurchaseDialogBody extends StatefulWidget {
+  final Future<void> Function(GamePackage package, PromoCode? promo) onPurchase;
+
+  const _PurchaseDialogBody({required this.onPurchase});
+
+  @override
+  State<_PurchaseDialogBody> createState() => _PurchaseDialogBodyState();
+}
+
+class _PurchaseDialogBodyState extends State<_PurchaseDialogBody> {
+  final _store = StoreService();
+  final _promoController = TextEditingController();
+  late Future<List<GamePackage>> _packages = _store.getActivePackages();
+  PromoCode? _promo;
+  String? _promoError;
+  bool _checkingPromo = false;
+
+  @override
+  void dispose() {
+    _promoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _applyPromo() async {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _checkingPromo = true;
+      _promoError = null;
+    });
+    try {
+      final promo = await _store.validatePromoCode(_promoController.text);
+      if (mounted) setState(() => _promo = promo);
+    } on PromoCodeException catch (e) {
+      if (mounted) setState(() => _promoError = e.message);
+    } catch (_) {
+      if (mounted) setState(() => _promoError = 'تعذر التحقق من الرمز، حاول مرة أخرى');
+    } finally {
+      if (mounted) setState(() => _checkingPromo = false);
+    }
+  }
+
+  void _removePromo() {
+    setState(() {
+      _promo = null;
+      _promoError = null;
+      _promoController.clear();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'لعبة جماعية تفاعلية يختار فيها معرفتكم و ثقافتكم',
+            style: AppTextStyles.largeTvBold.copyWith(
+              color: const Color(0xFF333333),
+              fontSize: 16,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF3E0),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  'لإنشاء لعبة جديدة اضغط على ( لعبة جديدة )',
+                  style: AppTextStyles.mediumRegular.copyWith(
+                    color: const Color(0xFF666666),
+                    fontSize: 13,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'و لاسترجاع الألعاب السابقة، اضغط على ( ألعابي )',
+                  style: AppTextStyles.mediumRegular.copyWith(
+                    color: const Color(0xFF666666),
+                    fontSize: 13,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _buildPromoField(),
+          const SizedBox(height: AppSpacing.lg),
+          FutureBuilder<List<GamePackage>>(
+            future: _packages,
+            builder: (context, snap) {
+              if (snap.connectionState != ConnectionState.done) {
+                return const Padding(
+                  padding: EdgeInsets.all(AppSpacing.lg),
+                  child: CircularProgressIndicator(color: AppColors.primaryRed),
+                );
+              }
+              if (snap.hasError) {
+                return _buildMessage(
+                  'تعذر تحميل الباقات',
+                  action: TextButton(
+                    onPressed: () => setState(() => _packages = _store.getActivePackages()),
+                    child: const Text('إعادة المحاولة'),
+                  ),
+                );
+              }
+              final packages = snap.data ?? [];
+              if (packages.isEmpty) {
+                return _buildMessage('لا توجد باقات متاحة حالياً');
+              }
+              return Column(
+                children: packages
+                    .map((package) => Padding(
+                          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                          child: _buildPackageButton(package),
+                        ))
+                    .toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessage(String text, {Widget? action}) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        children: [
+          Text(text,
+              style: AppTextStyles.mediumRegular.copyWith(color: const Color(0xFF666666)),
+              textAlign: TextAlign.center),
+          if (action != null) action,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPromoField() {
+    if (_promo != null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE8F5E9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFF4CAF50)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'تم تطبيق رمز ${_promo!.code} — خصم ${_promo!.discountPercent}%',
+                style: AppTextStyles.mediumRegular.copyWith(
+                  color: const Color(0xFF2E7D32),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: _removePromo,
+              child: const Text('إزالة', style: TextStyle(color: Color(0xFF2E7D32))),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _promoController,
+                textCapitalization: TextCapitalization.characters,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _applyPromo(),
+                style: const TextStyle(fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: 'رمز الخصم',
+                  hintStyle: const TextStyle(fontSize: 15, color: Color(0xFF999999)),
+                  prefixIcon: const Icon(Icons.local_offer_outlined, color: AppColors.primaryRed),
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.primaryRed),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            SizedBox(
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _checkingPromo ? null : _applyPromo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 22),
+                  textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, height: 1.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: _checkingPromo
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                      )
+                    : const Text('تطبيق'),
+              ),
+            ),
+          ],
+        ),
+        if (_promoError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              _promoError!,
+              style: AppTextStyles.mediumRegular.copyWith(color: AppColors.primaryRed, fontSize: 13),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildPackageButton(GamePackage package) {
+    final discount = _promo?.discountPercent ?? 0;
+    final finalPrice = GamePackage.formatSar(package.discountedHalalas(discount));
+    final textStyle = AppTextStyles.extraLargeTvBold.copyWith(
+      color: AppColors.white,
+      fontSize: 20,
+    );
+
     return InkWell(
-      onTap: onTap,
+      onTap: () => widget.onPurchase(package, _promo),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -375,20 +491,24 @@ class PurchaseDialog {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              package.price,
-              style: AppTextStyles.extraLargeTvBold.copyWith(
-                color: AppColors.white,
-                fontSize: 20,
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(finalPrice, style: textStyle),
+                if (discount > 0)
+                  Text(
+                    package.price,
+                    style: textStyle.copyWith(
+                      fontSize: 13,
+                      color: AppColors.white.withOpacity(0.8),
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: AppColors.white,
+                    ),
+                  ),
+              ],
             ),
-            Text(
-              package.title,
-              style: AppTextStyles.extraLargeTvBold.copyWith(
-                color: AppColors.white,
-                fontSize: 20,
-              ),
-            ),
+            Text(package.title, style: textStyle),
           ],
         ),
       ),
