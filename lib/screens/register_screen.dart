@@ -77,6 +77,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
         listener: (context, state) {
           if (state is Authenticated) {
             context.router.replace(const HomeRoute());
+          } else if (state is EmailVerificationRequired) {
+            context.router.replace(const VerifyEmailRoute());
           } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

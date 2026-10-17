@@ -14,6 +14,9 @@ import '../widgets/app_drawer.dart';
 import '../widgets/app_navbar.dart';
 import '../widgets/category_card.dart';
 import '../widgets/game_setup_form.dart';
+import '../widgets/purchase_dialog.dart';
+import '../bloc/user/user_bloc.dart';
+import '../bloc/user/user_event.dart';
 
 @RoutePage()
 class CategorySelectionScreen extends StatefulWidget {
@@ -23,6 +26,9 @@ class CategorySelectionScreen extends StatefulWidget {
   State<CategorySelectionScreen> createState() =>
       _CategorySelectionScreenState();
 }
+
+/// Each category fills 6 cells on the game board (2 per difficulty level).
+const int kQuestionsPerCategory = 6;
 
 class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   final Map<String, List<dynamic>> _categorySubcategories = {};
@@ -123,7 +129,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     final all = <dynamic>[];
     for (final subs in _categorySubcategories.values) {
       for (final sub in subs) {
-        if ((_subcategoryQuestionCounts[sub.id as String] ?? 0) > 0) {
+        if ((_subcategoryQuestionCounts[sub.id as String] ?? 0) >=
+            kQuestionsPerCategory) {
           all.add(sub);
         }
       }
@@ -165,10 +172,19 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       body: BlocListener<GameBloc, GameState>(
         listenWhen: (previous, current) =>
             (current is GameInProgress && previous is! GameInProgress) ||
+            current is InsufficientBalance ||
             (current is GameError && previous is! GameError),
         listener: (context, state) {
           if (state is GameInProgress) {
+            context.read<UserBloc>().add(LoadUserEvent(userId: state.gameRecord.userId));
             context.router.replace(QuestionGridRoute(gameId: state.gameId));
+          } else if (state is InsufficientBalance) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('رصيدك من الألعاب انتهى، اختر باقة للمتابعة',
+                  textDirection: TextDirection.rtl),
+              backgroundColor: AppColors.primaryRed,
+            ));
+            PurchaseDialog.showStore(context);
           } else if (state is GameError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

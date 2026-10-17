@@ -1,6 +1,9 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:trivia_game/widgets/lammah_logo.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/auth/auth_bloc.dart';
+import '../bloc/auth/auth_state.dart';
 import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -20,12 +23,20 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkAuth();
   }
 
-  void _checkAuth() {
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.router.replace(const HomeRoute());
-      }
-    });
+  Future<void> _checkAuth() async {
+    final authBloc = context.read<AuthBloc>();
+    bool resolved(AuthState s) => s is! AuthInitial && s is! AuthLoading;
+    await Future.wait([
+      Future.delayed(const Duration(seconds: 2)),
+      if (!resolved(authBloc.state))
+        authBloc.stream
+            .firstWhere(resolved)
+            .timeout(const Duration(seconds: 8), onTimeout: () => const Unauthenticated()),
+    ]);
+    if (!mounted) return;
+    context.router.replace(
+      authBloc.state is EmailVerificationRequired ? const VerifyEmailRoute() : const HomeRoute(),
+    );
   }
 
   @override

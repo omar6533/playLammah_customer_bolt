@@ -1,6 +1,7 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../config/app_config.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/app_spacing.dart';
@@ -14,6 +15,14 @@ import '../routes/app_router.dart';
 import 'custom_error_dialog.dart';
 
 class PurchaseDialog {
+  /// Opens the packages dialog with the app's payment configuration.
+  static void showStore(BuildContext context) => show(
+        context: context,
+        moyasarApiKey: AppConfig.moyasarApiKey,
+        callbackUrl: AppConfig.paymentCallbackUrl,
+        successUrl: AppConfig.paymentSuccessUrl,
+      );
+
   static void show({
     required BuildContext context,
     Function(GamePackage)? onPackageSelected,

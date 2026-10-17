@@ -87,6 +87,28 @@ class AppService {
     }
   }
 
+  Future<String?> restoreSession() async {
+    if (isMockMode) return _mockService.getCurrentUserId();
+    return (await _firebaseService.restoreSession())?.uid;
+  }
+
+  String? getCurrentUserEmail() =>
+      isMockMode ? null : _firebaseService.getCurrentUser()?.email;
+
+  bool isEmailVerified() =>
+      isMockMode || (_firebaseService.getCurrentUser()?.emailVerified ?? false);
+
+  Future<void> sendEmailVerification() async {
+    if (!isMockMode) await _firebaseService.sendEmailVerification();
+  }
+
+  Future<bool> reloadEmailVerified() async =>
+      isMockMode || await _firebaseService.reloadEmailVerified();
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    if (!isMockMode) await _firebaseService.sendPasswordResetEmail(email);
+  }
+
   Future<UserProfile?> getUserProfile(String userId) async {
     if (isMockMode) {
       return await _mockService.getUserProfile(userId);

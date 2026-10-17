@@ -65,6 +65,27 @@ class FirebaseService {
     return _auth.currentUser;
   }
 
+  /// Waits for Firebase to restore a persisted session on app start;
+  /// `currentUser` is null until that first auth event arrives.
+  Future<User?> restoreSession() => _auth.authStateChanges().first;
+
+  Future<void> sendEmailVerification() async {
+    await _auth.setLanguageCode('ar');
+    await _auth.currentUser?.sendEmailVerification();
+  }
+
+  /// Refreshes the user from Firebase so a verification done in the email
+  /// link is picked up without signing in again.
+  Future<bool> reloadEmailVerified() async {
+    await _auth.currentUser?.reload();
+    return _auth.currentUser?.emailVerified ?? false;
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _auth.setLanguageCode('ar');
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
   Stream<User?> authStateChanges() {
     return _auth.authStateChanges();
   }

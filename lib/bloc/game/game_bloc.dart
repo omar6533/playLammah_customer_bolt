@@ -84,6 +84,15 @@ class GameBloc extends Bloc<GameEvent, GameState> {
       CreateGameEvent event, Emitter<GameState> emit) async {
     emit(const GameLoading());
     try {
+      final profile = await _appService.getUserProfile(event.userId);
+      final balance = profile == null
+          ? 0
+          : profile.trialsRemaining + profile.availableGames;
+      if (balance <= 0) {
+        emit(const InsufficientBalance());
+        return;
+      }
+
       final gameId = await _appService.createGame(
         userId: event.userId,
         gameName: event.gameName,
@@ -91,6 +100,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         rightTeamName: event.rightTeamName,
         selectedSubcategories: event.selectedSubcategories,
       );
+      // A game is paid for when it starts, so unfinished games still count.
+      await _appService.decrementTrial(event.userId);
 
       final gameRecord = await _appService.getGame(gameId);
       if (gameRecord == null) throw Exception('Game not found');
@@ -240,12 +251,6 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         gameId: event.gameId,
         winner: computedWinner,
       );
-
-      // Decrement user's game balance now that the game is finished
-      final userId = state.gameRecord.userId;
-      if (userId.isNotEmpty) {
-        await _appService.decrementTrial(userId);
-      }
 
       final gameRecord = await _appService.getGame(event.gameId);
       if (gameRecord == null) throw Exception('Game not found');

@@ -41,6 +41,16 @@ class RegisterEvent extends AuthEvent {
   List<Object?> get props => [email, password, name, mobile];
 }
 
+class CheckEmailVerifiedEvent extends AuthEvent {
+  /// Silent checks (auto-polling) don't count as a failed attempt.
+  final bool silent;
+
+  const CheckEmailVerifiedEvent({this.silent = false});
+
+  @override
+  List<Object?> get props => [silent];
+}
+
 class LogoutEvent extends AuthEvent {
   const LogoutEvent();
 }

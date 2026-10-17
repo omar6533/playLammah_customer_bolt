@@ -67,6 +67,11 @@ class GameOver extends GameState {
       ];
 }
 
+/// The user tried to start a game with no games left in their balance.
+class InsufficientBalance extends GameState {
+  const InsufficientBalance();
+}
+
 class GameError extends GameState {
   final String message;
 

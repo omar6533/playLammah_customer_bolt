@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:trivia_game/config/app_config.dart';
 import 'package:trivia_game/routes/app_router.dart';
 import 'package:trivia_game/widgets/purchase_dialog.dart';
+import 'balance_chip.dart';
 import '../bloc/auth/auth_bloc.dart';
 import '../bloc/auth/auth_event.dart';
 import '../bloc/auth/auth_state.dart';
@@ -167,14 +168,8 @@ class AppDrawer extends StatelessWidget {
                 textDirection: TextDirection.rtl,
               ),
               const SizedBox(height: 2),
-              Text(
-                'رصيد ألعابك : $balance',
-                style: AppTextStyles.mediumRegular.copyWith(
-                  color: const Color(0xFF888888),
-                  fontSize: 13,
-                ),
-                textDirection: TextDirection.rtl,
-              ),
+              const SizedBox(height: 4),
+              BalanceChip(balance: balance),
             ],
           ),
         ],

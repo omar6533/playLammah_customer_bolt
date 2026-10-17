@@ -1,3 +1,4 @@
+import 'balance_chip.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -201,14 +202,7 @@ class AppNavbar extends StatelessWidget {
                     textDirection: TextDirection.rtl,
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    'رصيد ألعابك : $balance',
-                    style: AppTextStyles.mediumRegular.copyWith(
-                      color: const Color(0xFF888888),
-                      fontSize: 12,
-                    ),
-                    textDirection: TextDirection.rtl,
-                  ),
+                  BalanceChip(balance: balance, fontSize: 12),
                 ],
               ),
               const SizedBox(width: 10),

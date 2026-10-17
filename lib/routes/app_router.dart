@@ -16,6 +16,7 @@ import '../screens/my_games_screen.dart';
 import '../screens/purchase_games_screen.dart';
 import '../screens/game_over_screen.dart';
 import '../screens/payment_success_screen.dart';
+import '../screens/verify_email_screen.dart';
 
 part 'app_router.gr.dart';
 
@@ -38,5 +39,6 @@ class AppRouter extends RootStackRouter {
         AutoRoute(page: PaymentSuccessRoute.page),
         AutoRoute(page: PaymentFailureRoute.page),
         AutoRoute(page: PaymentWebviewRoute.page),
+        AutoRoute(page: VerifyEmailRoute.page),
       ];
 }
