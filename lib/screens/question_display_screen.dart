@@ -1,3 +1,4 @@
+import '../utils/game_board.dart';
 import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
@@ -247,8 +248,9 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
     final questionState = questionBloc.state;
     if (questionState is QuestionLoaded) {
       final updated = gameBloc.state;
+      final board = buildGameBoard(questionState.questions, widget.gameId);
       if (updated is GameInProgress &&
-          updated.playedQuestions.length >= questionState.questions.length) {
+          isBoardComplete(board, updated.playedQuestions)) {
         final lScore = updated.leftTeam.score;
         final rScore = updated.rightTeam.score;
         final gameWinner = lScore > rScore

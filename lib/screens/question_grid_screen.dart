@@ -16,6 +16,7 @@ import '../services/app_service.dart';
 import '../widgets/game_navbar.dart';
 import '../widgets/question_category_card.dart';
 import '../widgets/game_team_panel.dart';
+import '../utils/game_board.dart';
 
 @RoutePage()
 class QuestionGridScreen extends StatefulWidget {
@@ -58,18 +59,6 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     } catch (e) {
       debugPrint('Error loading subcategories: $e');
     }
-  }
-
-  Map<String, List<Question>> _groupQuestionsBySubcategory(
-      List<Question> questions) {
-    final Map<String, List<Question>> grouped = {};
-    for (final q in questions) {
-      grouped.putIfAbsent(q.subCategoryId, () => []).add(q);
-    }
-    for (final key in grouped.keys) {
-      grouped[key]!.sort((a, b) => a.points.compareTo(b.points));
-    }
-    return grouped;
   }
 
   void _incrementScore(bool isLeft, GameInProgress state) {
@@ -272,12 +261,13 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
 
   Widget _buildCategoryGrid(
       GameInProgress gameState, QuestionLoaded questionState) {
-    final grouped = _groupQuestionsBySubcategory(questionState.questions);
+    final board = buildGameBoard(questionState.questions, widget.gameId);
 
     int pad = 0;
-    while (grouped.length < 6) {
+    while (board.length < 6) {
       final id = '__placeholder_${pad++}';
-      grouped[id] = _mockQuestionsForPlaceholder(id);
+      final mock = _mockQuestionsForPlaceholder(id);
+      board.add(BoardCategory(id, [mock[0], mock[2], mock[4]], [mock[1], mock[3], mock[5]]));
       _subcategories.putIfAbsent(
         id,
         () => SubCategory(
@@ -292,44 +282,29 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
       );
     }
 
-    final ids = grouped.keys.toList();
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Column(
         children: [
-          Expanded(
-              child: _buildGridRow(gameState, grouped, ids.take(3).toList())),
-          Expanded(
-              child: _buildGridRow(
-                  gameState, grouped, ids.skip(3).take(3).toList())),
+          Expanded(child: _buildGridRow(gameState, board.take(3).toList())),
+          Expanded(child: _buildGridRow(gameState, board.skip(3).take(3).toList())),
         ],
       ),
     );
   }
 
-  Widget _buildGridRow(
-    GameInProgress gameState,
-    Map<String, List<Question>> grouped,
-    List<String> ids,
-  ) {
+  Widget _buildGridRow(GameInProgress gameState, List<BoardCategory> categories) {
     return Row(
-      children: ids.map((id) {
-        final questions = grouped[id]!;
-        // Distribute positionally so each cell always gets a unique question ID.
-        // questions is already sorted ascending by points (done in _groupQuestionsBySubcategory).
-        Question _at(int i) => i < questions.length ? questions[i] : questions.last;
-        final leftQs = [_at(0), _at(2), _at(4)];
-        final rightQs = [_at(1), _at(3), _at(5)];
-
+      children: categories.map((category) {
         return Expanded(
           child: Padding(
             padding: const EdgeInsets.all(4),
             child: QuestionCategoryCard(
-              subCategoryId: id,
-              leftQuestions: leftQs,
-              rightQuestions: rightQs,
+              subCategoryId: category.subCategoryId,
+              leftQuestions: category.left,
+              rightQuestions: category.right,
               playedQuestions: gameState.playedQuestions,
-              subcategory: _subcategories[id],
+              subcategory: _subcategories[category.subCategoryId],
               gameId: widget.gameId,
               isNavigating: _isNavigating,
               onNavigatingChanged: (val) {
