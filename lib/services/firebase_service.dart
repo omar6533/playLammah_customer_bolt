@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../config/app_config.dart';
 import '../models/main_category.dart';
 import '../models/sub_category.dart';
 import '../models/question.dart';
@@ -69,9 +70,17 @@ class FirebaseService {
   /// `currentUser` is null until that first auth event arrives.
   Future<User?> restoreSession() => _auth.authStateChanges().first;
 
+  /// The email templates' action URL can't be changed on this project
+  /// (EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED), so links still open Firebase's
+  /// page first; its "Continue" button then brings the user back to the site.
+  static final _emailActionSettings = ActionCodeSettings(
+    url: '${AppConfig.siteUrl}/',
+    handleCodeInApp: false,
+  );
+
   Future<void> sendEmailVerification() async {
     await _auth.setLanguageCode('ar');
-    await _auth.currentUser?.sendEmailVerification();
+    await _auth.currentUser?.sendEmailVerification(_emailActionSettings);
   }
 
   /// Refreshes the user from Firebase so a verification done in the email
@@ -92,7 +101,10 @@ class FirebaseService {
 
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.setLanguageCode('ar');
-    await _auth.sendPasswordResetEmail(email: email);
+    await _auth.sendPasswordResetEmail(
+      email: email,
+      actionCodeSettings: _emailActionSettings,
+    );
   }
 
   Stream<User?> authStateChanges() {
