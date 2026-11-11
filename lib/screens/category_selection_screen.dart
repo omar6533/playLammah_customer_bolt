@@ -13,6 +13,7 @@ import '../services/app_service.dart';
 import '../widgets/app_drawer.dart';
 import '../widgets/app_navbar.dart';
 import '../widgets/category_card.dart';
+import '../widgets/category_image.dart';
 import '../widgets/game_setup_form.dart';
 import '../widgets/purchase_dialog.dart';
 import '../bloc/user/user_bloc.dart';
@@ -66,6 +67,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     String gameName,
     String leftTeamName,
     String rightTeamName,
+    List<String> leftTeamTools,
+    List<String> rightTeamTools,
   ) {
     // Block start if any selected subcategory has no questions
     final emptySubs = state.selectedSubcategoryIds
@@ -119,6 +122,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
             leftTeamName: leftTeamName,
             rightTeamName: rightTeamName,
             selectedSubcategories: state.selectedSubcategoryIds,
+            leftTeamTools: leftTeamTools,
+            rightTeamTools: rightTeamTools,
           ),
         );
   }
@@ -153,7 +158,10 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   List<dynamic> _getFilteredSubcategories(String categoryId) {
-    final subs = _categorySubcategories[categoryId] ?? [];
+    // Categories without questions can't be played, so don't offer them.
+    final subs = (_categorySubcategories[categoryId] ?? [])
+        .where((s) => _subcategoryQuestionCounts[s.id as String] != 0)
+        .toList();
     if (_searchQuery.isEmpty) return subs;
     return subs
         .where((s) => s.nameAr
@@ -243,8 +251,10 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                 GameSetupForm(
                   selectedCount: selectedCount,
                   isDesktop: isDesktop,
-                  onStart: (gameName, leftTeam, rightTeam) =>
-                      _startGame(context, state, gameName, leftTeam, rightTeam),
+                  onStart: (gameName, leftTeam, rightTeam, leftTools,
+                          rightTools) =>
+                      _startGame(context, state, gameName, leftTeam, rightTeam,
+                          leftTools, rightTools),
                 ),
               ],
             ),
@@ -392,7 +402,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       child: Column(
         children: categories.map((category) {
           final subs = _getFilteredSubcategories(category.id);
-          if (subs.isEmpty && _searchQuery.isNotEmpty) {
+          final loaded = _categorySubcategories.containsKey(category.id);
+          if (subs.isEmpty && (_searchQuery.isNotEmpty || loaded)) {
             return const SizedBox.shrink();
           }
           return _buildCategorySection(
@@ -510,6 +521,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     return CategoryCard(
       nameAr: (subcategory.nameAr as String?) ?? '',
       icon: (subcategory.icon as String?) ?? '🎯',
+      imageUrl: subcategory.mediaUrl as String?,
       questionCount: questionCount >= 0 ? questionCount : null,
       isSelected: isSelected,
       isDisabled: !canSelect,
@@ -586,7 +598,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                               color: Colors.white, size: 16),
                           SizedBox(width: 6),
                           Text(
-                            'إختيار فئات عشوائي',
+                            'اختيار فئات عشوائي',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -606,7 +618,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   ? _selectedSlot(
                       context,
                       selected[i],
-                      _findSubcategoryById(selected[i])?.icon as String?,
+                      _findSubcategoryById(selected[i]),
                       slotSize,
                     )
                   : _emptySlot(slotSize),
@@ -617,25 +629,49 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
     );
   }
 
-  Widget _selectedSlot(
-      BuildContext context, String subcategoryId, String? icon, double size) {
+  Widget _selectedSlot(BuildContext context, String subcategoryId,
+      dynamic subcategory, double size) {
     final badgeSize = size * 0.42;
+    final name = (subcategory?.nameAr as String?) ?? '';
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFE8EC),
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primaryRed, width: 2),
-          ),
-          child: Center(
-            child: Text(
-              icon ?? '🎯',
-              style: TextStyle(fontSize: size * 0.45),
-            ),
+        Tooltip(
+          message: name,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFE8EC),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.primaryRed, width: 2),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: CategoryImage(
+                  url: subcategory?.mediaUrl as String?,
+                  alignment: Alignment.topCenter,
+                ),
+              ),
+              const SizedBox(height: 2),
+              SizedBox(
+                width: size,
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    color: AppColors.primaryRed,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    height: 1.1,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
         ),
         Positioned(
@@ -662,15 +698,25 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   }
 
   Widget _emptySlot(double size) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        shape: BoxShape.circle,
-        border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
-      ),
-      child: Icon(Icons.add, color: const Color(0xFFCCCCCC), size: size * 0.42),
+    // Same footprint as a selected slot (circle + name line) so the bar
+    // doesn't jump when categories are picked.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F5F5),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFFDDDDDD), width: 1.5),
+          ),
+          child: Icon(Icons.add,
+              color: const Color(0xFFCCCCCC), size: size * 0.42),
+        ),
+        const SizedBox(height: 2),
+        SizedBox(width: size, height: 10),
+      ],
     );
   }
 }

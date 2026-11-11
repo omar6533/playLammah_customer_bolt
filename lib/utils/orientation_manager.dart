@@ -109,17 +109,31 @@ class GameScreenWrapper extends StatefulWidget {
 }
 
 class _GameScreenWrapperState extends State<GameScreenWrapper> {
+  // Game screens stack on top of each other (board → question). Only unlock
+  // once the last one is gone; otherwise popping a question unlocks rotation
+  // while the board is still showing and the phone falls back to portrait.
+  static int _activeLocks = 0;
+
   @override
   void initState() {
     super.initState();
     if (widget.preferLandscape) {
+      _activeLocks++;
       OrientationManager.lockLandscape();
     }
   }
 
   @override
   void dispose() {
-    OrientationManager.unlockAll();
+    if (widget.preferLandscape) {
+      _activeLocks--;
+      if (_activeLocks <= 0) {
+        _activeLocks = 0;
+        OrientationManager.unlockAll();
+      } else {
+        OrientationManager.lockLandscape();
+      }
+    }
     super.dispose();
   }
 

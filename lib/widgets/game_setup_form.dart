@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_state.dart';
+import '../models/help_tool.dart';
 import '../theme/app_colors.dart';
 
 /// Self-contained game setup form with VS layout.
 /// Owns its own form state, controllers, and tool selections.
-/// Calls [onStart] with game name + team names when the form validates.
+/// Calls [onStart] with game name, team names and each team's help tools
+/// when the form validates.
 class GameSetupForm extends StatefulWidget {
   final int selectedCount;
   final bool isDesktop;
@@ -14,6 +16,8 @@ class GameSetupForm extends StatefulWidget {
     String gameName,
     String leftTeamName,
     String rightTeamName,
+    List<String> leftTeamTools,
+    List<String> rightTeamTools,
   ) onStart;
 
   const GameSetupForm({
@@ -39,13 +43,6 @@ class _GameSetupFormState extends State<GameSetupForm> {
   final _rightTeamKey = GlobalKey();
   final _leftTeamKey = GlobalKey();
 
-  static const List<Map<String, String>> _tools = [
-    {'key': 'استريح', 'label': 'استريح', 'icon': '😴'},
-    {'key': 'جاوب_جوابين', 'label': 'جاوب جوابين', 'icon': '✌️'},
-    {'key': 'الحفرة', 'label': 'الحفرة', 'icon': '🕳️'},
-    {'key': 'اتصال_بصديق', 'label': 'اتصال بصديق', 'icon': '📞'},
-  ];
-
   bool get _canStart => widget.selectedCount >= 6;
 
   @override
@@ -63,6 +60,8 @@ class _GameSetupFormState extends State<GameSetupForm> {
         _gameNameController.text.trim(),
         _leftTeamController.text.trim(),
         _rightTeamController.text.trim(),
+        _leftTeamTools.toList(),
+        _rightTeamTools.toList(),
       );
       return;
     }
@@ -279,7 +278,7 @@ class _GameSetupFormState extends State<GameSetupForm> {
         accentColor: accentColor,
         bgColor: bgColor,
         enabled: _canStart,
-        tools: _tools,
+        tools: kHelpTools,
         onToolToggle: (key) => setState(() {
           if (teamTools.contains(key)) {
             teamTools.remove(key);
@@ -352,7 +351,7 @@ class _TeamPanel extends StatelessWidget {
   final Color accentColor;
   final Color bgColor;
   final bool enabled;
-  final List<Map<String, String>> tools;
+  final List<HelpTool> tools;
   final void Function(String) onToolToggle;
 
   const _TeamPanel({
@@ -464,13 +463,13 @@ class _TeamPanel extends StatelessWidget {
             mainAxisSpacing: 8,
             childAspectRatio: 0.95,
             children: tools.map((tool) {
-              final key = tool['key']!;
+              final key = tool.key;
               final isToolSelected = teamTools.contains(key);
               final canPick =
                   enabled && (isToolSelected || teamTools.length < 3);
               return _ToolCard(
-                label: tool['label']!,
-                icon: tool['icon']!,
+                label: tool.label,
+                icon: tool.icon,
                 isSelected: isToolSelected,
                 canSelect: canPick,
                 accentColor: accentColor,

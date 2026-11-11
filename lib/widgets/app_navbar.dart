@@ -39,7 +39,7 @@ class AppNavbar extends StatelessWidget {
             children: [
               _logo(large: true),
               const SizedBox(width: 40),
-              _navLink('إبدأ اللعب', onTap: () {
+              _navLink('ابدأ اللعب', onTap: () {
                 final state = context.read<AuthBloc>().state;
                 if (state is Authenticated) {
                   context.router.push(const CategorySelectionRoute());
@@ -47,19 +47,6 @@ class AppNavbar extends StatelessWidget {
                   context.router.push(const LoginRoute());
                 }
               }),
-              const SizedBox(width: 32),
-              _navLink('الباقات'),
-              const SizedBox(width: 32),
-              _navLink('ألعابي السابقة', onTap: () {
-                final state = context.read<AuthBloc>().state;
-                if (state is Authenticated) {
-                  context.router.push(const MyGamesRoute());
-                } else {
-                  context.router.push(const LoginRoute());
-                }
-              }),
-              const SizedBox(width: 32),
-              _navLink('تواصل معنا'),
               const Spacer(),
               _authWidget(context),
             ],
@@ -160,8 +147,7 @@ class AppNavbar extends StatelessWidget {
         GestureDetector(
           onTap: () => context.router.push(const CategorySelectionRoute()),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
             decoration: BoxDecoration(
               color: AppColors.primaryRed,
               borderRadius: BorderRadius.circular(8),
@@ -177,48 +163,53 @@ class AppNavbar extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 16),
-        // Profile card
-        Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF7F7F7),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFFEEEEEE)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Column(
+        // Profile card — opens the user's games (no separate nav link)
+        Tooltip(
+          message: 'ألعابي',
+          child: GestureDetector(
+            onTap: () => context.router.push(const MyGamesRoute()),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7F7F7),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFEEEEEE)),
+              ),
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    userState.userProfile.name,
-                    style: AppTextStyles.mediumBold.copyWith(
-                      color: AppColors.navbarDark,
-                      fontSize: 14,
-                    ),
-                    textDirection: TextDirection.rtl,
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        userState.userProfile.name,
+                        style: AppTextStyles.mediumBold.copyWith(
+                          color: AppColors.navbarDark,
+                          fontSize: 14,
+                        ),
+                        textDirection: TextDirection.rtl,
+                      ),
+                      const SizedBox(height: 2),
+                      BalanceChip(balance: balance, fontSize: 12),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  BalanceChip(balance: balance, fontSize: 12),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed.withValues(alpha: 0.08),
+                      shape: BoxShape.circle,
+                      border:
+                          Border.all(color: AppColors.primaryRed, width: 1.5),
+                    ),
+                    child: const Icon(Icons.person,
+                        color: AppColors.primaryRed, size: 20),
+                  ),
                 ],
               ),
-              const SizedBox(width: 10),
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryRed.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
-                  border:
-                      Border.all(color: AppColors.primaryRed, width: 1.5),
-                ),
-                child: const Icon(Icons.person,
-                    color: AppColors.primaryRed, size: 20),
-              ),
-            ],
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -235,8 +226,7 @@ class AppNavbar extends StatelessWidget {
               color: const Color(0xFFF0F0F0),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(Icons.logout,
-                color: Color(0xFF888888), size: 18),
+            child: const Icon(Icons.logout, color: Color(0xFF888888), size: 18),
           ),
         ),
       ],

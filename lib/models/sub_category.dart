@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../utils/image_url.dart';
 
 class SubCategory extends Equatable {
   final String id;
@@ -6,6 +7,8 @@ class SubCategory extends Equatable {
   final String name;
   final String nameAr;
   final String icon;
+  /// Card illustration uploaded from the admin portal (`media_url`).
+  final String mediaUrl;
   final bool isActive;
   final int order;
 
@@ -15,6 +18,7 @@ class SubCategory extends Equatable {
     required this.name,
     required this.nameAr,
     required this.icon,
+    this.mediaUrl = '',
     required this.isActive,
     required this.order,
   });
@@ -27,6 +31,7 @@ class SubCategory extends Equatable {
       name: (json['name'] as String?) ?? nameAr,
       nameAr: nameAr,
       icon: (json['icon'] as String?) ?? '',
+      mediaUrl: directImageUrl((json['media_url'] as String?) ?? ''),
       isActive: (json['is_active'] as bool?) ?? true,
       order: (json['order'] as int?) ?? 0,
     );
@@ -39,6 +44,7 @@ class SubCategory extends Equatable {
       'name': name,
       'name_ar': nameAr,
       'icon': icon,
+      'media_url': mediaUrl,
       'is_active': isActive,
       'order': order,
     };
@@ -51,6 +57,7 @@ class SubCategory extends Equatable {
         name,
         nameAr,
         icon,
+        mediaUrl,
         isActive,
         order,
       ];

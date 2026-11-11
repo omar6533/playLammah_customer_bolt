@@ -3,6 +3,7 @@ class AppConfig {
 
   static const String appName = 'لمة | Lammh';
   static const String appNameAr = 'لمة';
+  static const String siteUrl = 'https://playlammh.com';
 
   static const int initialTrials = 1;
   static const int maxQuestionsPerGame = 25;

@@ -144,7 +144,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 12),
                 const AuthTitle('إنشاء حساب جديد'),
                 const SizedBox(height: 4),
-                const AuthSubtitle('وصف'),
+                const AuthSubtitle('أنشئ حسابك وابدأ التحدي مع ربعك'),
                 const SizedBox(height: AppSpacing.xl),
 
                 // Name

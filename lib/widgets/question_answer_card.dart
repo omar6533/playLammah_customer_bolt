@@ -21,6 +21,7 @@ class QuestionAnswerCard extends StatelessWidget {
   final VoidCallback onResetTimer;
   final VoidCallback onShowAnswer;
   final VoidCallback onSelectTeam;
+  final VoidCallback? onReport;
 
   const QuestionAnswerCard({
     super.key,
@@ -36,6 +37,7 @@ class QuestionAnswerCard extends StatelessWidget {
     required this.onResetTimer,
     required this.onShowAnswer,
     required this.onSelectTeam,
+    this.onReport,
   });
 
   @override
@@ -69,6 +71,10 @@ class QuestionAnswerCard extends StatelessWidget {
                   onReset: onResetTimer,
                 ),
                 const Spacer(),
+                if (onReport != null) ...[
+                  _ReportButton(onTap: onReport!),
+                  const SizedBox(width: 8),
+                ],
                 _PointsBadge(points: points),
               ],
             ),
@@ -175,6 +181,41 @@ class _TimerChip extends StatelessWidget {
   }
 }
 
+class _ReportButton extends StatelessWidget {
+  final VoidCallback onTap;
+  const _ReportButton({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'ملاحظة على السؤال',
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFCCCCCC)),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.flag_outlined, size: 16, color: Color(0xFF888888)),
+              SizedBox(width: 4),
+              Text('ملاحظة',
+                  style: TextStyle(
+                      color: Color(0xFF888888),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PointsBadge extends StatelessWidget {
   final int points;
   const _PointsBadge({required this.points});
@@ -204,21 +245,58 @@ class _Illustration extends StatelessWidget {
   final String? mediaUrl;
   const _Illustration({this.mediaUrl});
 
+  bool get _hasMedia => mediaUrl != null && mediaUrl!.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
+    final maxHeight = MediaQuery.sizeOf(context).height * 0.45;
+    final image = ClipRRect(
       borderRadius: BorderRadius.circular(16),
       child: Container(
         color: _kImageBg,
-        constraints: const BoxConstraints(maxHeight: 260),
+        constraints: BoxConstraints(maxHeight: maxHeight.clamp(200, 420)),
         width: double.infinity,
-        child: (mediaUrl != null && mediaUrl!.isNotEmpty)
+        child: _hasMedia
             ? Image.network(
                 mediaUrl!,
                 fit: BoxFit.contain,
+                loadingBuilder: (_, child, progress) => progress == null
+                    ? child
+                    : const SizedBox(
+                        height: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.primaryRed),
+                        ),
+                      ),
                 errorBuilder: (_, __, ___) => _placeholder(),
               )
             : _placeholder(),
+      ),
+    );
+    if (!_hasMedia) return image;
+
+    return GestureDetector(
+      onTap: () => showQuestionImageViewer(context, mediaUrl!),
+      child: MouseRegion(
+        cursor: SystemMouseCursors.zoomIn,
+        child: Stack(
+          children: [
+            image,
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.zoom_in, color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -233,6 +311,44 @@ class _Illustration extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Full-screen view of a question image with pinch / scroll-wheel zoom.
+Future<void> showQuestionImageViewer(BuildContext context, String url) {
+  return showDialog(
+    context: context,
+    barrierColor: Colors.black87,
+    builder: (ctx) => Dialog.fullscreen(
+      backgroundColor: Colors.transparent,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 6,
+                child: Center(
+                  child: Image.network(url, fit: BoxFit.contain),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            top: 16,
+            right: 16,
+            child: SafeArea(
+              child: IconButton.filled(
+                onPressed: () => Navigator.pop(ctx),
+                style: IconButton.styleFrom(backgroundColor: Colors.white24),
+                icon: const Icon(Icons.close, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _AnswerReveal extends StatelessWidget {

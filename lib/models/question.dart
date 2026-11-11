@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../utils/image_url.dart';
 
 class Question extends Equatable {
   final String id;
@@ -28,6 +29,8 @@ class Question extends Equatable {
   });
 
   factory Question.fromJson(Map<String, dynamic> json) {
+    final mediaUrl =
+        (json['question_media_url'] as String?) ?? (json['media_url'] as String?);
     return Question(
       id: json['id'] as String,
       subCategoryId: (json['sub_category_id'] as String?) ?? '',
@@ -38,7 +41,7 @@ class Question extends Equatable {
       points: (json['points'] as int?) ?? 0,
       isActive: (json['is_active'] as bool?) ?? ((json['status'] as String?) == 'active' ? true : true),
       order: (json['order'] as int?) ?? 0,
-      mediaUrl: (json['question_media_url'] as String?) ?? (json['media_url'] as String?),
+      mediaUrl: mediaUrl == null ? null : directImageUrl(mediaUrl),
       mediaType: json['media_type'] as String?,
     );
   }

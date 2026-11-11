@@ -30,6 +30,7 @@ class QuestionGridScreen extends StatefulWidget {
 class _QuestionGridScreenState extends State<QuestionGridScreen> {
   final Map<String, SubCategory> _subcategories = {};
   bool _isNavigating = false;
+  bool _imagesPrecached = false;
 
   @override
   void initState() {
@@ -59,6 +60,22 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     } catch (e) {
       debugPrint('Error loading subcategories: $e');
     }
+  }
+
+  /// Warm the image cache for every question on the board so opening a
+  /// question shows its picture straight away.
+  void _precacheQuestionImages(List<Question> questions) {
+    if (_imagesPrecached) return;
+    _imagesPrecached = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      for (final q in questions) {
+        final url = q.mediaUrl;
+        if (url != null && url.isNotEmpty) {
+          precacheImage(NetworkImage(url), context, onError: (_, __) {});
+        }
+      }
+    });
   }
 
   void _incrementScore(bool isLeft, GameInProgress state) {
@@ -203,6 +220,7 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
                                 const TextStyle(color: AppColors.primaryRed)));
                   }
                   if (questionState is QuestionLoaded) {
+                    _precacheQuestionImages(questionState.questions);
                     return _buildLayout(gameState, questionState);
                   }
                   return const SizedBox.shrink();
@@ -245,6 +263,12 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
                   onDecrementRight: () => _decrementScore(false, gameState),
                   onIncrementLeft: () => _incrementScore(true, gameState),
                   onDecrementLeft: () => _decrementScore(true, gameState),
+                  rightTeamTools: gameState.gameRecord.rightTeamTools,
+                  leftTeamTools: gameState.gameRecord.leftTeamTools,
+                  usedTools: gameState.gameRecord.usedTools,
+                  onUseTool: (team, key) => context.read<GameBloc>().add(
+                      UseHelpToolEvent(
+                          gameId: widget.gameId, team: team, toolKey: key)),
                 ),
                 // Second child = physical LEFT → category grid
                 Expanded(
@@ -267,7 +291,8 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
     while (board.length < 6) {
       final id = '__placeholder_${pad++}';
       final mock = _mockQuestionsForPlaceholder(id);
-      board.add(BoardCategory(id, [mock[0], mock[2], mock[4]], [mock[1], mock[3], mock[5]]));
+      board.add(BoardCategory(
+          id, [mock[0], mock[2], mock[4]], [mock[1], mock[3], mock[5]]));
       _subcategories.putIfAbsent(
         id,
         () => SubCategory(
@@ -287,13 +312,15 @@ class _QuestionGridScreenState extends State<QuestionGridScreen> {
       child: Column(
         children: [
           Expanded(child: _buildGridRow(gameState, board.take(3).toList())),
-          Expanded(child: _buildGridRow(gameState, board.skip(3).take(3).toList())),
+          Expanded(
+              child: _buildGridRow(gameState, board.skip(3).take(3).toList())),
         ],
       ),
     );
   }
 
-  Widget _buildGridRow(GameInProgress gameState, List<BoardCategory> categories) {
+  Widget _buildGridRow(
+      GameInProgress gameState, List<BoardCategory> categories) {
     return Row(
       children: categories.map((category) {
         return Expanded(

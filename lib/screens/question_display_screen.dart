@@ -14,6 +14,7 @@ import '../models/question.dart';
 import '../widgets/game_navbar.dart';
 import '../widgets/game_team_panel.dart';
 import '../widgets/question_answer_card.dart';
+import '../widgets/question_report_dialog.dart';
 import '../widgets/team_answer_selector.dart';
 
 const _kTimerSeconds = 30;
@@ -40,12 +41,31 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
 
   // Countdown timer state
   int _secondsRemaining = _kTimerSeconds;
-  bool _timerRunning = true;
+  bool _timerRunning = false;
   Timer? _countdown;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startWhenReady());
+  }
+
+  /// The countdown only starts once the question image (if any) is on
+  /// screen, so slow connections don't eat into the team's 30 seconds.
+  Future<void> _startWhenReady() async {
+    final questionState = context.read<QuestionBloc>().state;
+    String? mediaUrl;
+    if (questionState is QuestionLoaded) {
+      for (final q in questionState.questions) {
+        if (q.id == widget.questionId) mediaUrl = q.mediaUrl;
+      }
+    }
+    if (mediaUrl != null && mediaUrl.isNotEmpty) {
+      await precacheImage(NetworkImage(mediaUrl), context, onError: (_, __) {})
+          .timeout(const Duration(seconds: 15), onTimeout: () {});
+    }
+    if (!mounted || _timerRunning || _showAnswer) return;
+    setState(() => _timerRunning = true);
     _startTimer();
   }
 
@@ -358,6 +378,11 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
               _timerRunning = false;
             }),
             onSelectTeam: () => setState(() => _selectingTeam = true),
+            onReport: () => showQuestionReportDialog(
+              context,
+              question: question,
+              gameId: widget.gameId,
+            ),
           );
 
     if (!isDesktop) return mainCard;
@@ -376,6 +401,12 @@ class _QuestionDisplayScreenState extends State<QuestionDisplayScreen> {
           onDecrementRight: () => _decrementScore(false, gameState),
           onIncrementLeft: () => _incrementScore(true, gameState),
           onDecrementLeft: () => _decrementScore(true, gameState),
+          rightTeamTools: gameState.gameRecord.rightTeamTools,
+          leftTeamTools: gameState.gameRecord.leftTeamTools,
+          usedTools: gameState.gameRecord.usedTools,
+          onUseTool: (team, key) => context.read<GameBloc>().add(
+              UseHelpToolEvent(
+                  gameId: widget.gameId, team: team, toolKey: key)),
         ),
         // RTL second = physical LEFT → main card
         Expanded(child: mainCard),

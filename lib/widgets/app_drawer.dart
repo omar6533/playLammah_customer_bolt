@@ -18,13 +18,6 @@ class AppDrawer extends StatelessWidget {
 
   const AppDrawer({super.key, this.onLoginTap});
 
-  static const _links = [
-    'إبدأ اللعب',
-    'الباقات',
-    'ألعابي السابقة',
-    'تواصل معنا',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Directionality(
@@ -109,11 +102,13 @@ class AppDrawer extends StatelessWidget {
                                     },
                                   ),
                                 ),
-                                _drawerLink(context, 'تواصل معنا'),
-                              ] else ...[
-                                ..._links.map(
-                                    (label) => _drawerLink(context, label)),
-                              ],
+                              ] else
+                                _drawerActionLink(
+                                  context,
+                                  Icons.play_circle_outline,
+                                  'ابدأ اللعب',
+                                  () => context.router.push(const LoginRoute()),
+                                ),
                               const SizedBox(height: 8),
                             ],
                           ),
@@ -259,23 +254,6 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _drawerLink(BuildContext context, String label) {
-    return InkWell(
-      onTap: () => Navigator.of(context).pop(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        child: Text(
-          label,
-          style: AppTextStyles.mediumRegular.copyWith(
-            color: AppColors.navbarDark,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
         ),
       ),
     );

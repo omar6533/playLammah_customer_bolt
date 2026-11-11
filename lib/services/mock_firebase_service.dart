@@ -181,6 +181,8 @@ class MockFirebaseService {
     required String leftTeamName,
     required String rightTeamName,
     required List<String> selectedSubcategories,
+    List<String> leftTeamTools = const [],
+    List<String> rightTeamTools = const [],
   }) async {
     await _simulateDelay();
 
@@ -198,6 +200,8 @@ class MockFirebaseService {
       status: 'in_progress',
       playedQuestions: [],
       selectedSubcategories: selectedSubcategories,
+      leftTeamTools: leftTeamTools,
+      rightTeamTools: rightTeamTools,
       playCount: 1,
       createdAt: DateTime.now().toIso8601String(),
       updatedAt: DateTime.now().toIso8601String(),

@@ -4,6 +4,7 @@ import '../routes/app_router.dart';
 import '../theme/app_colors.dart';
 import '../models/question.dart';
 import '../models/sub_category.dart';
+import 'category_image.dart';
 
 const _kCellRed = Color(0xFFBB1F50);
 const _kCellPlayed = Color(0xFFE8C0CE);
@@ -54,15 +55,9 @@ class QuestionCategoryCard extends StatelessWidget {
                 ),
                 Expanded(
                   flex: 2,
-                  child: Image.asset(
-                    'assets/images/category_placeholder.png',
+                  child: CategoryImage(
+                    url: subcategory?.mediaUrl,
                     fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Center(
-                      child: Text(
-                        subcategory?.icon ?? '🎯',
-                        style: const TextStyle(fontSize: 36),
-                      ),
-                    ),
                   ),
                 ),
                 _QuestionColumn(
@@ -77,18 +72,21 @@ class QuestionCategoryCard extends StatelessWidget {
           ),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
             color: _kNamePill,
-            child: Text(
-              subcategory?.nameAr ?? '',
-              style: const TextStyle(
-                color: AppColors.primaryRed,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
+            // Scale long names down instead of cutting them off on phones.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                subcategory?.nameAr ?? '',
+                style: const TextStyle(
+                  color: AppColors.primaryRed,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
               ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],

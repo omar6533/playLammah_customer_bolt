@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import 'category_image.dart';
 
 /// Reusable category subcategory card — Figma spec: 220.8×380, radius 24, border 2px.
 /// Used in CategorySelectionScreen (with selection state) and HomeCategoriesSection (display-only).
 class CategoryCard extends StatelessWidget {
   final String nameAr;
   final String icon;
+  final String? imageUrl;
   final int? questionCount;
   final bool isSelected;
   final bool isDisabled;
@@ -15,6 +17,7 @@ class CategoryCard extends StatelessWidget {
     super.key,
     required this.nameAr,
     required this.icon,
+    this.imageUrl,
     this.questionCount,
     this.isSelected = false,
     this.isDisabled = false,
@@ -60,18 +63,7 @@ class CategoryCard extends StatelessWidget {
                         color: isSelected
                             ? const Color(0xFFFFD6DD)
                             : const Color(0xFFDCEEFB),
-                        child: Image.asset(
-                          'assets/images/category_placeholder.png',
-                          fit: BoxFit.contain,
-                          alignment: Alignment.bottomCenter,
-                          width: double.infinity,
-                          errorBuilder: (_, __, ___) => Center(
-                            child: Text(
-                              icon,
-                              style: const TextStyle(fontSize: 44),
-                            ),
-                          ),
-                        ),
+                        child: CategoryImage(url: imageUrl),
                       ),
                     ),
                     // Name area (~22 %)
@@ -107,7 +99,8 @@ class CategoryCard extends StatelessWidget {
                                     ? Colors.red.shade600
                                     : (isSelected
                                         ? Colors.white.withValues(alpha: 0.25)
-                                        : AppColors.primaryRed.withValues(alpha: 0.1)),
+                                        : AppColors.primaryRed
+                                            .withValues(alpha: 0.1)),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -132,33 +125,35 @@ class CategoryCard extends StatelessWidget {
                   ],
                 ),
               ),
-              // Flag badge — top-right
-              Positioned(
-                top: 8,
-                right: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(icon, style: const TextStyle(fontSize: 10)),
-                      const SizedBox(width: 2),
-                      const Text('🇸🇦', style: TextStyle(fontSize: 10)),
-                    ],
+              // Flag badge — top-right (only for placeholder art; the
+              // uploaded card illustrations already carry their own design)
+              if (imageUrl == null || imageUrl!.isEmpty)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(icon, style: const TextStyle(fontSize: 10)),
+                        const SizedBox(width: 2),
+                        const Text('🇸🇦', style: TextStyle(fontSize: 10)),
+                      ],
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
         ),

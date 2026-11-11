@@ -189,7 +189,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           const Text(
-            'لم تلعب أي لعبة بعد. إبدأ اللعب الآن.',
+            'لم تلعب أي لعبة بعد. ابدأ اللعب الآن.',
             style: TextStyle(color: _kSubText, fontSize: 14),
             textAlign: TextAlign.center,
           ),

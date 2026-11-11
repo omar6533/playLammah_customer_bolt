@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
+import '../models/sub_category.dart';
+import '../services/app_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import 'category_card.dart';
 import 'red_pill_button.dart';
-
-class _CategoryItem {
-  final String name;
-  final String description;
-  final String icon;
-  const _CategoryItem(this.name, this.description, this.icon);
-}
 
 class HomeCategoriesSection extends StatefulWidget {
   final bool isDesktop;
@@ -29,14 +24,8 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
   late PageController _controller;
   int _current = 1;
 
-  // TODO: replace with Firestore stream
-  static const _categories = [
-    _CategoryItem('رياضة', 'أسئلة متنوعة في عالم الرياضة', '⚽'),
-    _CategoryItem('تاريخ', 'أسئلة عن تاريخ العرب والعالم', '📜'),
-    _CategoryItem('علوم', 'أسئلة علمية تختبر معلوماتك', '🔬'),
-    _CategoryItem('فن وثقافة', 'أسئلة في عالم الفن والثقافة', '🎨'),
-    _CategoryItem('جغرافيا', 'أسئلة عن دول ومدن العالم', '🌍'),
-  ];
+  List<SubCategory> _categories = [];
+  bool _loading = true;
 
   double get _viewportFraction => widget.isDesktop ? 0.20 : 0.60;
   double get _carouselHeight => widget.isDesktop ? 420 : 380;
@@ -48,6 +37,33 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
       viewportFraction: _viewportFraction,
       initialPage: _current,
     );
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    try {
+      final appService = AppService();
+      final mains = await appService.getMainCategories();
+      final subs = await Future.wait(
+          mains.map((m) => appService.getSubCategoriesForMainCategory(m.id)));
+      if (!mounted) return;
+      setState(() {
+        _categories = subs.expand((s) => s).toList();
+        _loading = false;
+        if (_current >= _categories.length) {
+          _current = 0;
+          final old = _controller;
+          _controller = PageController(
+            viewportFraction: _viewportFraction,
+            initialPage: _current,
+          );
+          old.dispose();
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading home categories: $e');
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -96,57 +112,67 @@ class _HomeCategoriesSectionState extends State<HomeCategoriesSection> {
               ),
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              height: _carouselHeight,
-              child: PageView.builder(
-                controller: _controller,
-                itemCount: _categories.length,
-                onPageChanged: (i) => setState(() => _current = i),
-                itemBuilder: (ctx, i) {
-                  final active = i == _current;
-                  return AnimatedScale(
-                    scale: active ? 1.0 : 0.88,
-                    duration: const Duration(milliseconds: 200),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      child: CategoryCard(
-                        nameAr: _categories[i].name,
-                        icon: _categories[i].icon,
-                        isSelected: active,
-                        onTap: widget.onCategoryTap,
+            if (_loading)
+              SizedBox(
+                height: _carouselHeight,
+                child: const Center(
+                  child: CircularProgressIndicator(color: AppColors.primaryRed),
+                ),
+              )
+            else if (_categories.isNotEmpty) ...[
+              SizedBox(
+                height: _carouselHeight,
+                child: PageView.builder(
+                  controller: _controller,
+                  itemCount: _categories.length,
+                  onPageChanged: (i) => setState(() => _current = i),
+                  itemBuilder: (ctx, i) {
+                    final active = i == _current;
+                    return AnimatedScale(
+                      scale: active ? 1.0 : 0.88,
+                      duration: const Duration(milliseconds: 200),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        child: CategoryCard(
+                          nameAr: _categories[i].nameAr,
+                          icon: _categories[i].icon,
+                          imageUrl: _categories[i].mediaUrl,
+                          isSelected: active,
+                          onTap: widget.onCategoryTap,
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            RedPillButton(
-              label: '← شرح الفئة',
-              onTap: widget.onCategoryTap,
-              horizontal: 24,
-              vertical: 12,
-              fontSize: 14,
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _categories.length,
-                (i) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  width: i == _current ? 24 : 8,
-                  height: 8,
-                  decoration: BoxDecoration(
-                    color: i == _current
-                        ? AppColors.primaryRed
-                        : AppColors.primaryRed.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(4),
+              const SizedBox(height: 20),
+              RedPillButton(
+                label: '← شرح الفئة',
+                onTap: widget.onCategoryTap,
+                horizontal: 24,
+                vertical: 12,
+                fontSize: 14,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  _categories.length,
+                  (i) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: i == _current ? 24 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: i == _current
+                          ? AppColors.primaryRed
+                          : AppColors.primaryRed.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ],
         ),
       ),

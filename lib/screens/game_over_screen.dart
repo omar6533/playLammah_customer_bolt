@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../bloc/game/game_bloc.dart';
 import '../bloc/game/game_state.dart';
 import '../utils/orientation_manager.dart';
+import '../utils/share_result.dart';
 import '../widgets/game_navbar.dart';
 import '../routes/app_router.dart';
 
@@ -91,8 +92,17 @@ class _WinnerLayout extends StatelessWidget {
     final loserScore =
         isRightWinner ? state.leftTeamScore : state.rightTeamScore;
 
-    final winner =
-        _WinnerPanel(name: winnerName, score: winnerScore, onHome: onHome);
+    final winner = _WinnerPanel(
+      name: winnerName,
+      score: winnerScore,
+      shareText: buildResultShareText(
+        winnerName: winnerName,
+        winnerScore: winnerScore,
+        loserName: loserName,
+        loserScore: loserScore,
+      ),
+      onHome: onHome,
+    );
     final loser = _LoserPanel(name: loserName, score: loserScore);
 
     // RTL: first child = physical RIGHT, last child = physical LEFT.
@@ -118,11 +128,13 @@ class _WinnerLayout extends StatelessWidget {
 class _WinnerPanel extends StatelessWidget {
   final String name;
   final int score;
+  final String shareText;
   final VoidCallback onHome;
 
   const _WinnerPanel({
     required this.name,
     required this.score,
+    required this.shareText,
     required this.onHome,
   });
 
@@ -148,7 +160,7 @@ class _WinnerPanel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text(
-                'كبير هالمه',
+                'كبير هاللمّه',
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
@@ -178,17 +190,19 @@ class _WinnerPanel extends StatelessWidget {
                   fontSize: c ? 36 : 48),
             ),
             SizedBox(height: c ? 12 : 20),
-            ElevatedButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.share_outlined, size: 16),
-              label: const Text('مشاركة النتيجة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryRed,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                padding:
-                    EdgeInsets.symmetric(horizontal: 20, vertical: c ? 8 : 10),
+            Builder(
+              builder: (buttonContext) => ElevatedButton.icon(
+                onPressed: () => shareResult(buttonContext, shareText),
+                icon: const Icon(Icons.share_outlined, size: 16),
+                label: const Text('مشاركة النتيجة'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryRed,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 20, vertical: c ? 8 : 10),
+                ),
               ),
             ),
             SizedBox(height: c ? 6 : 10),

@@ -81,6 +81,15 @@ class FirebaseService {
     return _auth.currentUser?.emailVerified ?? false;
   }
 
+  // Email action links (verify email / reset password) handled in-app.
+  Future<void> applyActionCode(String code) => _auth.applyActionCode(code);
+
+  Future<String> verifyPasswordResetCode(String code) =>
+      _auth.verifyPasswordResetCode(code);
+
+  Future<void> confirmPasswordReset(String code, String newPassword) =>
+      _auth.confirmPasswordReset(code: code, newPassword: newPassword);
+
   Future<void> sendPasswordResetEmail(String email) async {
     await _auth.setLanguageCode('ar');
     await _auth.sendPasswordResetEmail(email: email);
@@ -337,6 +346,8 @@ class FirebaseService {
     required String leftTeamName,
     required String rightTeamName,
     required List<String> selectedSubcategories,
+    List<String> leftTeamTools = const [],
+    List<String> rightTeamTools = const [],
   }) async {
     final gameRef = await _firestore.collection('games').add({
       'user_id': userId,
@@ -350,6 +361,9 @@ class FirebaseService {
       'winner': null,
       'played_questions': [],
       'selected_subcategories': selectedSubcategories,
+      'left_team_tools': leftTeamTools,
+      'right_team_tools': rightTeamTools,
+      'used_tools': [],
       'play_count': 1,
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),
@@ -455,8 +469,24 @@ class FirebaseService {
       'right_team_score': 0,
       'current_turn': 'left',
       'played_questions': [],
+      'used_tools': [],
       'winner': null,
       'completed_at': null,
+      'updated_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> reportQuestion(Map<String, dynamic> report) async {
+    await _firestore.collection('question_reports').add({
+      ...report,
+      'status': 'new',
+      'created_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> addUsedTool(String gameId, String entry) async {
+    await _firestore.collection('games').doc(gameId).update({
+      'used_tools': FieldValue.arrayUnion([entry]),
       'updated_at': FieldValue.serverTimestamp(),
     });
   }

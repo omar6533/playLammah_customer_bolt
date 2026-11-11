@@ -143,6 +143,10 @@ String authErrorMessage(Object e) {
         return 'محاولات كثيرة، يرجى الانتظار قليلاً ثم المحاولة مرة أخرى';
       case 'network-request-failed':
         return 'تحقق من اتصالك بالإنترنت';
+      case 'expired-action-code':
+        return 'انتهت صلاحية الرابط، اطلب رابطاً جديداً';
+      case 'invalid-action-code':
+        return 'الرابط غير صالح أو تم استخدامه من قبل';
     }
   }
   return 'حدث خطأ غير متوقع، حاول مرة أخرى';

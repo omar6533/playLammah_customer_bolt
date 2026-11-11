@@ -175,7 +175,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 12),
                 const AuthTitle('تسجيل الدخول'),
                 const SizedBox(height: 4),
-                const AuthSubtitle('وصف'),
+                const AuthSubtitle('سجّل دخولك وابدأ التحدي'),
                 const SizedBox(height: AppSpacing.xl),
                 AuthFormField(
                   label: 'البريد الإلكتروني *',

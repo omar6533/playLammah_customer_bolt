@@ -24,6 +24,15 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkAuth() async {
+    // Links from Firebase emails land here as ?mode=...&oobCode=...
+    final params = Uri.base.queryParameters;
+    final mode = params['mode'];
+    final oobCode = params['oobCode'];
+    if (mode != null && oobCode != null) {
+      context.router.replace(AuthActionRoute(mode: mode, oobCode: oobCode));
+      return;
+    }
+
     final authBloc = context.read<AuthBloc>();
     bool resolved(AuthState s) => s is! AuthInitial && s is! AuthLoading;
     await Future.wait([

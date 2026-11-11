@@ -40,7 +40,7 @@ class GameNavbar extends StatelessWidget {
             ),
             TextButton(
               onPressed: onEndGame,
-              child: const Text('أنهي اللعبة',
+              child: const Text('أنهِ اللعبة',
                   style: TextStyle(
                       color: AppColors.primaryRed,
                       fontWeight: FontWeight.w600,

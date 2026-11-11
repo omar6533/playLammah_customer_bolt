@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../models/help_tool.dart';
 import '../../models/team.dart';
 import '../../services/app_service.dart';
 import 'game_event.dart';
@@ -19,6 +20,32 @@ class GameBloc extends Bloc<GameEvent, GameState> {
     on<ResumeGameEvent>(_onResumeGame);
     on<ReplayGameEvent>(_onReplayGame);
     on<AwardPointsEvent>(_onAwardPoints);
+    on<UseHelpToolEvent>(_onUseHelpTool);
+  }
+
+  Future<void> _onUseHelpTool(
+      UseHelpToolEvent event, Emitter<GameState> emit) async {
+    final state = this.state;
+    if (state is! GameInProgress) return;
+
+    final entry = usedToolEntry(event.team, event.toolKey);
+    if (state.gameRecord.usedTools.contains(entry)) return;
+
+    try {
+      await _appService.addUsedTool(event.gameId, entry);
+      emit(GameInProgress(
+        gameId: state.gameId,
+        gameRecord: state.gameRecord.copyWith(
+          usedTools: [...state.gameRecord.usedTools, entry],
+        ),
+        leftTeam: state.leftTeam,
+        rightTeam: state.rightTeam,
+        playedQuestions: state.playedQuestions,
+      ));
+    } catch (e) {
+      // Keep the board playable; the tool just isn't marked as used.
+      print('⚠️ Failed to save used help tool: $e');
+    }
   }
 
   Future<void> _onAwardPoints(
@@ -99,6 +126,8 @@ class GameBloc extends Bloc<GameEvent, GameState> {
         leftTeamName: event.leftTeamName,
         rightTeamName: event.rightTeamName,
         selectedSubcategories: event.selectedSubcategories,
+        leftTeamTools: event.leftTeamTools,
+        rightTeamTools: event.rightTeamTools,
       );
       // A game is paid for when it starts, so unfinished games still count.
       await _appService.decrementTrial(event.userId);

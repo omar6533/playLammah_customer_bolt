@@ -13,6 +13,8 @@ class CreateGameEvent extends GameEvent {
   final String leftTeamName;
   final String rightTeamName;
   final List<String> selectedSubcategories;
+  final List<String> leftTeamTools;
+  final List<String> rightTeamTools;
 
   const CreateGameEvent({
     required this.userId,
@@ -20,6 +22,8 @@ class CreateGameEvent extends GameEvent {
     required this.leftTeamName,
     required this.rightTeamName,
     required this.selectedSubcategories,
+    this.leftTeamTools = const [],
+    this.rightTeamTools = const [],
   });
 
   @override
@@ -29,7 +33,25 @@ class CreateGameEvent extends GameEvent {
         leftTeamName,
         rightTeamName,
         selectedSubcategories,
+        leftTeamTools,
+        rightTeamTools,
       ];
+}
+
+/// A team spends one of its help tools.
+class UseHelpToolEvent extends GameEvent {
+  final String gameId;
+  final String team; // 'left' or 'right'
+  final String toolKey;
+
+  const UseHelpToolEvent({
+    required this.gameId,
+    required this.team,
+    required this.toolKey,
+  });
+
+  @override
+  List<Object?> get props => [gameId, team, toolKey];
 }
 
 class LoadGameEvent extends GameEvent {

@@ -11,6 +11,67 @@
 part of 'app_router.dart';
 
 /// generated route for
+/// [AuthActionScreen]
+class AuthActionRoute extends PageRouteInfo<AuthActionRouteArgs> {
+  AuthActionRoute({
+    Key? key,
+    String mode = '',
+    String oobCode = '',
+    List<PageRouteInfo>? children,
+  }) : super(
+          AuthActionRoute.name,
+          args: AuthActionRouteArgs(key: key, mode: mode, oobCode: oobCode),
+          rawQueryParams: {'mode': mode, 'oobCode': oobCode},
+          initialChildren: children,
+        );
+
+  static const String name = 'AuthActionRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final queryParams = data.queryParams;
+      final args = data.argsAs<AuthActionRouteArgs>(
+        orElse: () => AuthActionRouteArgs(
+          mode: queryParams.getString('mode', ''),
+          oobCode: queryParams.getString('oobCode', ''),
+        ),
+      );
+      return AuthActionScreen(
+        key: args.key,
+        mode: args.mode,
+        oobCode: args.oobCode,
+      );
+    },
+  );
+}
+
+class AuthActionRouteArgs {
+  const AuthActionRouteArgs({this.key, this.mode = '', this.oobCode = ''});
+
+  final Key? key;
+
+  final String mode;
+
+  final String oobCode;
+
+  @override
+  String toString() {
+    return 'AuthActionRouteArgs{key: $key, mode: $mode, oobCode: $oobCode}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AuthActionRouteArgs) return false;
+    return key == other.key && mode == other.mode && oobCode == other.oobCode;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ mode.hashCode ^ oobCode.hashCode;
+}
+
+/// generated route for
 /// [CategorySelectionScreen]
 class CategorySelectionRoute extends PageRouteInfo<void> {
   const CategorySelectionRoute({List<PageRouteInfo>? children})

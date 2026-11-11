@@ -105,6 +105,15 @@ class AppService {
   Future<bool> reloadEmailVerified() async =>
       isMockMode || await _firebaseService.reloadEmailVerified();
 
+  Future<void> applyActionCode(String code) =>
+      _firebaseService.applyActionCode(code);
+
+  Future<String> verifyPasswordResetCode(String code) =>
+      _firebaseService.verifyPasswordResetCode(code);
+
+  Future<void> confirmPasswordReset(String code, String newPassword) =>
+      _firebaseService.confirmPasswordReset(code, newPassword);
+
   Future<void> sendPasswordResetEmail(String email) async {
     if (!isMockMode) await _firebaseService.sendPasswordResetEmail(email);
   }
@@ -216,6 +225,8 @@ class AppService {
     required String leftTeamName,
     required String rightTeamName,
     required List<String> selectedSubcategories,
+    List<String> leftTeamTools = const [],
+    List<String> rightTeamTools = const [],
   }) async {
     if (isMockMode) {
       return await _mockService.createGame(
@@ -224,6 +235,8 @@ class AppService {
         leftTeamName: leftTeamName,
         rightTeamName: rightTeamName,
         selectedSubcategories: selectedSubcategories,
+        leftTeamTools: leftTeamTools,
+        rightTeamTools: rightTeamTools,
       );
     } else {
       return await _firebaseService.createGame(
@@ -232,8 +245,37 @@ class AppService {
         leftTeamName: leftTeamName,
         rightTeamName: rightTeamName,
         selectedSubcategories: selectedSubcategories,
+        leftTeamTools: leftTeamTools,
+        rightTeamTools: rightTeamTools,
       );
     }
+  }
+
+  /// Sends a player's note about a question to the content team
+  /// (shown under "Question Reports" in the admin portal).
+  Future<void> reportQuestion({
+    required String questionId,
+    required String subCategoryId,
+    required String questionText,
+    required String reason,
+    required String note,
+    String? gameId,
+  }) async {
+    if (isMockMode) return;
+    await _firebaseService.reportQuestion({
+      'question_id': questionId,
+      'sub_category_id': subCategoryId,
+      'question_text_ar': questionText,
+      'reason': reason,
+      'note': note,
+      'game_id': gameId,
+      'user_id': getCurrentUserId(),
+      'user_email': getCurrentUserEmail(),
+    });
+  }
+
+  Future<void> addUsedTool(String gameId, String entry) async {
+    if (!isMockMode) await _firebaseService.addUsedTool(gameId, entry);
   }
 
   Future<GameRecord?> getGame(String gameId) async {

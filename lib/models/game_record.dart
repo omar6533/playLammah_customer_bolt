@@ -13,6 +13,10 @@ class GameRecord extends Equatable {
   final String? winner;
   final List<String> playedQuestions;
   final List<String> selectedSubcategories;
+  final List<String> leftTeamTools;
+  final List<String> rightTeamTools;
+  /// Spent help tools as `team:toolKey` (see [usedToolEntry]).
+  final List<String> usedTools;
   final int playCount;
   final String createdAt;
   final String updatedAt;
@@ -31,6 +35,9 @@ class GameRecord extends Equatable {
     this.winner,
     required this.playedQuestions,
     required this.selectedSubcategories,
+    this.leftTeamTools = const [],
+    this.rightTeamTools = const [],
+    this.usedTools = const [],
     required this.playCount,
     required this.createdAt,
     required this.updatedAt,
@@ -50,6 +57,9 @@ class GameRecord extends Equatable {
     String? winner,
     List<String>? playedQuestions,
     List<String>? selectedSubcategories,
+    List<String>? leftTeamTools,
+    List<String>? rightTeamTools,
+    List<String>? usedTools,
     int? playCount,
     String? createdAt,
     String? updatedAt,
@@ -69,6 +79,9 @@ class GameRecord extends Equatable {
       playedQuestions: playedQuestions ?? this.playedQuestions,
       selectedSubcategories:
           selectedSubcategories ?? this.selectedSubcategories,
+      leftTeamTools: leftTeamTools ?? this.leftTeamTools,
+      rightTeamTools: rightTeamTools ?? this.rightTeamTools,
+      usedTools: usedTools ?? this.usedTools,
       playCount: playCount ?? this.playCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -91,6 +104,10 @@ class GameRecord extends Equatable {
       playedQuestions: List<String>.from(json['played_questions'] as List),
       selectedSubcategories:
           List<String>.from(json['selected_subcategories'] as List),
+      leftTeamTools: List<String>.from(json['left_team_tools'] as List? ?? []),
+      rightTeamTools:
+          List<String>.from(json['right_team_tools'] as List? ?? []),
+      usedTools: List<String>.from(json['used_tools'] as List? ?? []),
       playCount: json['play_count'] as int,
       createdAt: json['created_at'] as String,
       updatedAt: json['updated_at'] as String,
@@ -112,6 +129,9 @@ class GameRecord extends Equatable {
       'winner': winner,
       'played_questions': playedQuestions,
       'selected_subcategories': selectedSubcategories,
+      'left_team_tools': leftTeamTools,
+      'right_team_tools': rightTeamTools,
+      'used_tools': usedTools,
       'play_count': playCount,
       'created_at': createdAt,
       'updated_at': updatedAt,
@@ -133,6 +153,9 @@ class GameRecord extends Equatable {
         winner,
         playedQuestions,
         selectedSubcategories,
+        leftTeamTools,
+        rightTeamTools,
+        usedTools,
         playCount,
         createdAt,
         updatedAt,

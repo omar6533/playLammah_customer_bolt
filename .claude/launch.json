@@ -4,9 +4,27 @@
     {
       "name": "Flutter Web",
       "runtimeExecutable": "flutter",
-      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "3000"],
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "3000"
+      ],
       "port": 3000,
       "autoPort": false
+    },
+    {
+      "name": "Web Build",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "3001",
+        "--directory",
+        "build/web"
+      ],
+      "port": 3001
     }
   ]
 }
