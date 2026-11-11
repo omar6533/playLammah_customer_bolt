@@ -1,3 +1,4 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../services/app_service.dart';
@@ -148,6 +149,9 @@ String authErrorMessage(Object e) {
       case 'invalid-action-code':
         return 'الرابط غير صالح أو تم استخدامه من قبل';
     }
+  }
+  if (e is FirebaseFunctionsException && e.code == 'resource-exhausted') {
+    return 'انتظر دقيقة قبل طلب رسالة جديدة';
   }
   return 'حدث خطأ غير متوقع، حاول مرة أخرى';
 }

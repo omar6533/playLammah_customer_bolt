@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../config/app_config.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:flutter/foundation.dart';
 import '../models/main_category.dart';
 import '../models/sub_category.dart';
 import '../models/question.dart';
@@ -70,17 +71,30 @@ class FirebaseService {
   /// `currentUser` is null until that first auth event arrives.
   Future<User?> restoreSession() => _auth.authStateChanges().first;
 
-  /// The email templates' action URL can't be changed on this project
-  /// (EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED), so links still open Firebase's
-  /// page first; its "Continue" button then brings the user back to the site.
-  static final _emailActionSettings = ActionCodeSettings(
-    url: '${AppConfig.siteUrl}/',
-    handleCodeInApp: false,
-  );
+  /// Branded Arabic emails come from our Cloud Functions (functions/index.js)
+  /// and link straight to the Arabic handler page. If the function is
+  /// unavailable, fall back to Firebase's built-in email so nobody is stuck.
+  /// Rate-limit errors are passed on so the user sees "wait a moment".
+  Future<bool> _sendViaFunction(String name, [Map<String, dynamic>? data]) async {
+    try {
+      await FirebaseFunctions.instance.httpsCallable(name).call(data);
+      return true;
+    } on FirebaseFunctionsException catch (e) {
+      if (e.code == 'resource-exhausted') rethrow;
+      debugPrint('⚠️ $name failed (${e.code}), using Firebase email: ${e.message}');
+      return false;
+    } catch (e) {
+      debugPrint('⚠️ $name failed, using Firebase email: $e');
+      return false;
+    }
+  }
 
   Future<void> sendEmailVerification() async {
+    if (await _sendViaFunction('sendVerificationEmail')) return;
     await _auth.setLanguageCode('ar');
-    await _auth.currentUser?.sendEmailVerification(_emailActionSettings);
+    // No ActionCodeSettings: on iOS Firebase wraps the continue URL in its
+    // retired /__/auth/links page, which ends in "The operation is not valid".
+    await _auth.currentUser?.sendEmailVerification();
   }
 
   /// Refreshes the user from Firebase so a verification done in the email
@@ -100,11 +114,11 @@ class FirebaseService {
       _auth.confirmPasswordReset(code: code, newPassword: newPassword);
 
   Future<void> sendPasswordResetEmail(String email) async {
+    if (await _sendViaFunction('sendPasswordResetEmail', {'email': email})) {
+      return;
+    }
     await _auth.setLanguageCode('ar');
-    await _auth.sendPasswordResetEmail(
-      email: email,
-      actionCodeSettings: _emailActionSettings,
-    );
+    await _auth.sendPasswordResetEmail(email: email);
   }
 
   Stream<User?> authStateChanges() {

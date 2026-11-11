@@ -1,0 +1,17 @@
+{
+  "name": "playlammh-functions",
+  "description": "Cloud Functions for لمّه وتحدي — branded Arabic auth emails",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "deploy": "firebase deploy --only functions --project allmahgame"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^6.1.0"
+  }
+}
